@@ -21,7 +21,7 @@ RENDER_DIR = os.environ.get('RENDER_DIR', os.path.join(os.path.dirname(os.path.a
 QUAL = {
     'draft': dict(res=(480, 270), samples=2, fast=True),
     'preview': dict(res=(640, 360), samples=4, fast=False),
-    'final': dict(res=(1280, 720), samples=6, fast=False),
+    'final': dict(res=(960, 540), samples=3, fast=False),
 }
 
 
@@ -39,6 +39,15 @@ def main():
     sc = bl.reset_scene()
     q = QUAL[a.q]
     bl.setup_render(res=q['res'], samples=getattr(cls, 'samples', {}).get(a.q, q['samples']), fast=q['fast'])
+    if a.q == 'final':
+        cy = sc.cycles
+        cy.diffuse_bounces = 1
+        cy.glossy_bounces = 1
+        cy.max_bounces = 3
+        cy.transparent_max_bounces = 6
+        cy.use_adaptive_sampling = False
+        cy.denoising_prefilter = 'FAST'
+        cy.denoising_quality = 'HIGH'
     if a.threads:
         sc.render.threads_mode = 'FIXED'
         sc.render.threads = a.threads

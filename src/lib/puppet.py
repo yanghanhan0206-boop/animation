@@ -18,7 +18,7 @@ from .bl import CM, v
 from . import mats as M
 
 PALETTE = dict(
-    skin='#f0bf93', hair='#1c1512', hoodie='#e3a12a', hoodie_dark='#c9861f',
+    skin='#e6b287', hair='#1c1512', hoodie='#e3a12a', hoodie_dark='#c9861f',
     pants='#34405a', shoe='#efede4', sole='#8b8a86', eye='#f7f4ee', pupil='#0c0b0c',
     lip='#5a231d', mouth='#3a0e0e', blush='#f09a8a', bag='#c09088', crack='#2a1a14',
     suit='#252d45', shirt='#f1f0ea', tie='#a3302c', string='#f1ede2',

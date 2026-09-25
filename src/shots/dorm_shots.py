@@ -172,7 +172,7 @@ class S03b(DormShot):
         d.show_month(9)
         d.set_notes(3)
         d.hide_upper_from_camera(True)
-        bl.set_cam(self.cam, (-7.3, -8.2, 18.2), (-12.2, 3.9, 8.6), lens=46, fstop=8.0)
+        bl.set_cam(self.cam, (-6.0, -2.6, 12.2), (-12.5, 3.9, 8.6), lens=38, fstop=8.0)
         self.cur = Keys([(0.0, (640, 380)), (0.4, (640, 380)), (1.9, (1030, 690), 'io'), (4.0, (1030, 690))])
         self.last = None
 
@@ -216,9 +216,9 @@ class S03c(DormShot):
         d.set_time(self.hour, fill=0.45)
         d.show_month(9)
         d.set_notes(3)
-        d.laptop.show(tex.scr_success(n=1), strength=2.4, glow=0.3)
+        d.laptop.show(tex.scr_success(n=1), strength=2.4, glow=0.12)
         self.cam_hide(d.laptop.root)
-        bl.set_cam(self.cam, (-12.4, 12.4, 13.4), (-12.0, 0.3, 10.1), lens=48, fstop=11.0)
+        bl.set_cam(self.cam, (-12.4, 12.8, 10.9), (-12.0, 0.3, 10.4), lens=42, fstop=11.0)
         base = dict(typing(0), lean=12, head_pitch=7, look=(0, -0.3))
         pump_hi = dict(arm_r_w=(-9.4, -2.3, 12.9), elbow_r=(-1, 0.2, -1), arm_l_w=(-13.4, 0.9, 6.95))
         pump_lo = dict(arm_r_w=(-9.5, -2.0, 11.2), elbow_r=(-1, 0.2, -1), arm_l_w=(-13.4, 0.9, 6.95))
@@ -469,9 +469,9 @@ class S07(DormShot):
         d.show_month(10)
         d.set_notes(14)
         d.set_cups(8)
-        d.laptop.show(tex.scr_inbox(), strength=1.8, glow=0.7)
+        d.laptop.show(tex.scr_inbox(), strength=1.8, glow=0.25)
         bl.set_cam(self.cam, (-12.4, 17.5, 16.2), (-12.0, -1.6, 9.4), lens=38, fstop=10.0)
-        bl.area_light('s07key', (-6, 12, 26), (-12, -2, 9), energy=1.3, size=12, color=(1.0, 0.86, 0.68))
+        bl.area_light('s07key', (-6, 12, 26), (-12, -2, 9), energy=0.6, size=12, color=(1.0, 0.86, 0.68))
         bl.area_light('s07rim', (-24, -16, 20), (-12, -2, 10), energy=3.0, size=10, color=(0.55, 0.65, 1.0))
         self.base_pose = dict(SIT, lean=6, head_pitch=2, bags=0.8, hair_mess=0.5, ahoge=0.0, smile=-0.35,
                               brow_worry=0.5, eyes=0.8, blush=0.4, look=(0, 0.1),
@@ -591,7 +591,7 @@ class S07(DormShot):
                     continue
                 self.env_pose(ob, (x, y, z + 0.04), self.surface_rot(x, y, H, it['yaw']))
         # the laptop glow gets buried
-        self.d.laptop.light.data.energy = 0.7 * max(0.0, 1 - H / 10.0)
+        self.d.laptop.light.data.energy = 0.25 * max(0.0, 1 - H / 10.0)
         # puppet: still, blinking, flinching at hits; eyes follow the heap
         pz = dict(self.base_pose)
         flinch = any(h <= t < h + 0.17 for h in self.head_hits)
@@ -682,10 +682,10 @@ class S11b(DormShot):
         d.set_time(self.hour, fill=0.05, lamp=0.25)
         d.hide_upper_from_camera(True)
         d.show_month(11)
-        d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.2)
+        d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.07)
         d.phone.root.location = v(PHONE_NEAR)
         self.cam_hide(d.laptop.root)
-        bl.set_cam(self.cam, (-12.8, 13.6, 12.6), (-11.9, 0.3, 10.0), lens=46, fstop=11.0)
+        bl.set_cam(self.cam, (-12.8, 13.6, 11.2), (-11.9, 0.3, 10.2), lens=44, fstop=11.0)
         base = dict(SIT, lean=9, head_pitch=12, bags=0.9, hair_mess=0.6, ahoge=0.6, blush=0.3,
                     arm_r_w=(-10.2, -0.4, 6.9), arm_l_w=(-13.7, -0.4, 6.8),
                     elbow_r=(-1, 0.3, -0.6), elbow_l=(1, 0.3, -0.6))
@@ -752,7 +752,8 @@ class S11c(PhoneAtEar):
         d.show_month(11)
         d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.5)
         self.front_objects_visible(False)
-        bl.set_cam(self.cam, (3.5, -9.5, 12.8), (-11.3, -1.6, 10.0), lens=42, fstop=8.0)
+        d.hide_upper_from_camera(True)
+        bl.set_cam(self.cam, (-2.2, 6.8, 12.8), (-11.3, -1.2, 10.0), lens=30, fstop=8.0)
         base = dict(SIT, lean=4, bags=0.9, hair_mess=0.6, ahoge=0.6, blush=0.3, head_roll=-10, head_yaw=-8,
                     arm_l_w=(-13.6, -0.3, 6.8), elbow_l=(1, 0.3, -0.6))
         self.P = Pose([
@@ -795,9 +796,9 @@ class S11d(PhoneAtEar):
         d.set_time(self.hour, fill=0.06, lamp=0.3)
         d.hide_upper_from_camera(True)
         d.show_month(11)
-        d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.35)
+        d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.1)
         self.cam_hide(d.laptop.root)
-        bl.set_cam(self.cam, (-12.6, 13.6, 12.6), (-11.9, 0.3, 10.0), lens=46, fstop=11.0)
+        bl.set_cam(self.cam, (-12.6, 13.6, 11.2), (-11.9, 0.3, 10.2), lens=44, fstop=11.0)
         base = dict(SIT, lean=6, bags=0.9, hair_mess=0.6, ahoge=0.6, blush=0.3,
                     arm_l_w=(-13.6, -0.3, 6.8), elbow_l=(1, 0.3, -0.6))
         self.P = Pose([
@@ -855,7 +856,8 @@ class S12(DormShot):
         d.show_month(11)
         d.set_notes(14)
         d.set_cups(8)
-        d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.4)
+        d.hide_upper_from_camera(True)
+        d.laptop.show(tex.scr_inbox(), strength=1.6, glow=0.2)
         self.cam_hide(d.laptop.root, d.mug.root, d.lamp.root, *[c.root for c in d.cups])
         # a cold, constant key (the window) so the flicker never plunges the frame into black
         bl.area_light('s12key', (-4, 14, 20), (-12, -2, 10), energy=0.9, size=10, color=(0.6, 0.7, 1.0))
@@ -937,7 +939,7 @@ class S12(DormShot):
         o = self.off(t)
         bl.set_cam(self.cam, (H.x + o[0], H.y + o[1], H.z + o[2]), (H.x, H.y + 1.6, H.z - 0.3),
                    lens=self.lens(t), fstop=9.0)
-        d.laptop.light.data.energy = 0.0 if frozen else 0.4
+        d.laptop.light.data.energy = 0.0 if frozen else 0.2
 
 
 # =============================================================================
@@ -1192,7 +1194,7 @@ class S14c(DormShot):
         d.set_notes(14)
         d.set_cups(8)
         d.hide_upper_from_camera(True)
-        bl.set_cam(self.cam, (-7.3, -8.2, 18.2), (-12.2, 3.9, 8.6), lens=46, fstop=8.0)
+        bl.set_cam(self.cam, (-6.0, -2.6, 12.2), (-12.5, 3.9, 8.6), lens=38, fstop=8.0)
         self.cur = Keys([(0.0, (700, 420)), (0.3, (700, 420)), (1.6, (1030, 690), 'io'), (4.0, (1030, 690))])
         self.last = None
 

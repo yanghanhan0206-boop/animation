@@ -71,7 +71,7 @@ class S08a(Interview):
     seed = 31
 
     def setup(self):
-        bl.set_cam(self.cam, (4.7, -8.2, 18.2), (-0.2, 3.9, 8.6), lens=46, fstop=8.0)
+        bl.set_cam(self.cam, (6.0, -2.6, 12.2), (-0.5, 3.9, 8.6), lens=38, fstop=8.0)
 
     def frame(self, t, i):
         self.screen(t, i, warn=None)
@@ -89,7 +89,7 @@ class S08b(Interview):
     def setup(self):
         for ob in [self.laptop.root] + list(self.laptop.root.children_recursive):
             ob.visible_camera = False
-        bl.set_cam(self.cam, (0.5, 11.8, 12.4), (0.1, 0.3, 10.2), lens=46, fstop=11.0)
+        bl.set_cam(self.cam, (0.5, 12.6, 13.0), (0.1, 0.3, 10.6), lens=44, fstop=11.0)
         self.P = Pose([
             (0.0, dict(SUIT, smile=0.35, brow_worry=0.3, look=(0, -0.1), sweat=0.0,
                        arm_r_w=(1.6, -0.9, 7.9), elbow_r=(-1, 0.2, -1))),

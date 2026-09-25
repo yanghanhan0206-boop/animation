@@ -141,9 +141,9 @@ def build():
     # stretch / yawn, cheek pats, typing, click, chime, "yay"
     vox.add(norm(S.breath(1.1, inhale=True, seed=1), -30), AT('s03a', 0.8))
     vox.add(norm(S.breath(0.9, inhale=False, seed=2), -32), AT('s03a', 2.2))
-    for k in range(4):
+    for k, tp in enumerate((2.91, 3.24)):          # two pats on the cheeks (hands closest to the face)
         sfx.add(norm(S.lowpass(S.noise(int(0.05 * SR), np.random.default_rng(k)), 700) *
-                     np.exp(-np.arange(int(0.05 * SR)) / (0.008 * SR)), -26), AT('s03a', 2.75 + 0.16 * k))
+                     np.exp(-np.arange(int(0.05 * SR)) / (0.008 * SR)), -24), AT('s03a', tp))
 
     def typing(t0_, t1_, rate=7.0, db_=-30, seed=0):
         rng = np.random.default_rng(seed)
@@ -188,9 +188,9 @@ def build():
     typing(AT('s04', 10.6), AT('s04', 13.4), rate=12, db_=-30, seed=4)
     typing(AT('s04', 14.1), AT('s04', 16.0), rate=15, db_=-29, seed=5)
     vox.add(norm(S.breath(0.35, inhale=True, seed=7), -24), AT('s04', 10.15))
-    for k in range(4):
+    for k, tp in enumerate((13.575, 13.925)):      # two slaps to stay awake
         sfx.add(norm(S.lowpass(S.noise(int(0.05 * SR), np.random.default_rng(10 + k)), 900) *
-                     np.exp(-np.arange(int(0.05 * SR)) / (0.006 * SR)), -20), AT('s04', 13.45 + 0.175 * k))
+                     np.exp(-np.arange(int(0.05 * SR)) / (0.006 * SR)), -20), AT('s04', tp))
 
     # ================= S05 September torn
     chord(music, ['A2', 'E3', 'A3', 'C4'], AT('s05', 0.0), 4.0, vel=0.3, soft=0.8)

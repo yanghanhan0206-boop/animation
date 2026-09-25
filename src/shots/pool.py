@@ -117,7 +117,8 @@ class Pool:
         while len(spots) < 30 and tries < 4000:
             tries += 1
             x, y = rng.uniform(-PX + 8, PX - 8), rng.uniform(-PY + 8, PY - 8)
-            if all((x - a) ** 2 + (y - b) ** 2 > 12.5 ** 2 for a, b in spots) and (x ** 2 + y ** 2) > 8 ** 2:
+            if (all((x - a) ** 2 + (y - b) ** 2 > 12.5 ** 2 for a, b in spots) and
+                    (x - 4.5) ** 2 + (y + 5.5) ** 2 > 13.5 ** 2):
                 spots.append((x, y))
         for k, (x, y) in enumerate(spots):
             ob = bpy.data.objects.new(f'floater{k}', me)
