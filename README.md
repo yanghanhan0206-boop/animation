@@ -4,9 +4,16 @@
 
 > 一枚 2027 届的应届生，在「金九银十」的秋天投出了三百份简历，收到的回音几乎都以同一句话开头——「感谢您的投递」。
 
-- 成片：[`output/感谢您的投递.mp4`](output/感谢您的投递.mp4)
+- 成片：[`output/感谢您的投递.mp4`](output/感谢您的投递.mp4)（1280×720，H.264 + AAC，3:13）
 - 剧本与分镜：[`docs/剧本与分镜.md`](docs/剧本与分镜.md)
 - 剧照：[`output/stills/`](output/stills/)
+
+| | |
+|---|---|
+| ![九月，投递成功](output/stills/01_九月_投递成功.jpg) S03 九月 · 第一次投递 | ![海投](output/stills/02_海投.jpg) S04 海投 |
+| ![被淹没](output/stills/03_被淹没.jpg) S07 十月 · 被淹没 | ![AI 面试](output/stills/04_AI面试.jpg) S08 AI 面试 |
+| ![人才库](output/stills/05_人才库.jpg) S09 人才库 | ![漩涡](output/stills/06_漩涡.jpg) S12 十一月 · 漩涡 |
+| ![凌晨三点](output/stills/07_凌晨三点.jpg) S13 凌晨三点 | ![天亮](output/stills/08_天亮.jpg) S14 天亮 |
 
 ## 这部片子是怎么「做」出来的
 
@@ -37,8 +44,11 @@ src/edl.py             剪辑表：镜头顺序与时长
 src/dialogue.py        对白、字幕、片名与片尾
 src/render.py          逐格「拍摄」一个镜头
 src/audio/             合成器与配乐 / 音效时间线
-src/post/compose.py    调色、颗粒、字幕与编码
+src/post/compose.py    调色、颗粒、字幕与编码（母版）
+src/post/deliver.py    两遍编码，压到适合放进仓库的大小
+src/post/stills.py     导出剧照
 build.sh               从零重建整部片子
+render_all.sh          用两个并行进程逐格渲染所有镜头（可选，更快）
 output/                成片与剧照
 ```
 
@@ -47,7 +57,8 @@ output/                成片与剧照
 ```bash
 pip install "bpy==4.5.*" numpy scipy pillow imageio-ffmpeg
 sudo apt install fonts-noto-cjk fonts-lxgw-wenkai
-./build.sh              # 全质量（4 核 CPU 上需要数小时）
+./render_all.sh         # 可选：两个进程并行渲染全部镜头（4 核 CPU 约 3.5 小时）
+./build.sh              # 全质量（已渲染的帧会跳过）
 Q=draft ./build.sh      # 低清快速预览
 ```
 

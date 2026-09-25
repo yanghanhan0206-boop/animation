@@ -4,6 +4,7 @@
 #
 #   ./build.sh            # full quality (hours on a 4-core CPU)
 #   Q=draft ./build.sh    # quick low-res pass
+#   ./render_all.sh       # (optional) render the shots with two parallel workers first
 #
 # Requirements: python3.11, pip packages bpy==4.5.* numpy scipy pillow imageio-ffmpeg,
 # and the CJK fonts fonts-noto-cjk + fonts-lxgw-wenkai (only used to typeset the text).
@@ -19,4 +20,8 @@ for s in $SHOTS; do
 done
 
 python3 src/audio/score.py build/soundtrack.wav
-python3 src/post/compose.py --q "$Q" --audio build/soundtrack.wav --out "build/感谢您的投递.mp4"
+# master (CRF 19, ~200 MB), then a two-pass copy small enough for the repo, then the stills
+python3 src/post/compose.py --q "$Q" --crf 19 --audio build/soundtrack.wav --out build/master.mp4
+OUT=output; [ "$Q" = final ] || OUT=build/$Q      # only a final build replaces the committed film
+python3 src/post/deliver.py build/master.mp4 "$OUT/感谢您的投递.mp4" --audio build/soundtrack.wav
+python3 src/post/stills.py --q "$Q" --out "$OUT/stills"
