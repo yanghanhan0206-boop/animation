@@ -109,6 +109,32 @@ def chord(bus, names, t, dur, vel=0.4, soft=0.7, gain=1.0, spread=0.02):
         bus.add(pn(n, dur, vel, soft), t + k * spread, gain, -0.3 + 0.6 * k / max(1, len(names) - 1))
 
 
+def compress(x, thr_db=-26.0, ratio=2.2, att=0.015, rel=0.35, target_rms_db=-19.0):
+    """Gentle master compression (block RMS detector, smoothed gain), then make-up gain
+    towards a target RMS so quiet scenes stay audible on small speakers."""
+    blk = int(0.01 * SR)
+    n = len(x) // blk
+    pw = np.mean(x[:n * blk].reshape(n, blk, 2) ** 2, axis=(1, 2))
+    lev = 10 * np.log10(pw + 1e-12)
+    over = np.maximum(0.0, lev - thr_db)
+    gr = -over * (1 - 1 / ratio)                  # dB of gain reduction wanted
+    g = np.zeros(n)
+    a_att = np.exp(-0.01 / att)
+    a_rel = np.exp(-0.01 / rel)
+    cur = 0.0
+    for k in range(n):
+        tgt = gr[k]
+        coef = a_att if tgt < cur else a_rel
+        cur = coef * cur + (1 - coef) * tgt
+        g[k] = cur
+    gain = np.repeat(db(g), blk)
+    gain = np.concatenate([gain, np.full(len(x) - len(gain), gain[-1] if len(gain) else 1.0)])
+    y = x * gain[:, None]
+    rms = np.sqrt(np.mean(y ** 2))
+    y *= db(target_rms_db) / max(rms, 1e-9)
+    return y
+
+
 # -----------------------------------------------------------------------------
 def build():
     music = S.Bus(DUR)        # piano & pads (reverb)
@@ -219,10 +245,10 @@ def build():
     t = AT('s07', 3.9)
     while t < AT('s07', 11.2):
         u = (t - AT('s07', 3.9)) / 7.3
-        sfx.add(norm(S.paper_land(seed=int(t * 100)), -27 + 4 * u), t, pan=rng.uniform(-0.6, 0.6))
+        sfx.add(norm(S.paper_land(seed=int(t * 100)), -30 + 4 * u), t, pan=rng.uniform(-0.6, 0.6))
         t += rng.uniform(0.04, 0.12) * (1.2 - 0.6 * u)
-    sfx.add(norm(S.bandpass(S.noise(int(7.5 * SR), rng, 'pink'), 600, 5000) *
-                 np.linspace(0.2, 1.0, int(7.5 * SR)), -28), AT('s07', 3.9))
+    sfx.add(norm(S.bandpass(S.noise(int(7.5 * SR), rng, 'pink'), 500, 3500) *
+                 np.linspace(0.2, 1.0, int(7.5 * SR)), -33), AT('s07', 3.9))
     t0 = AT('s07', 0.5)
     melody(far, t0, 60, MINOR, vel=0.45, soft=0.6, count=11, upto=AT('s07', 11.6))
     arpeggio(far, t0, 60, MINOR_CH[:5], vel=0.22, soft=0.75, upto=AT('s07', 11.6))
@@ -358,7 +384,7 @@ def build():
     ramp[:int(0.4 * SR)] = np.linspace(0, 1, int(0.4 * SR))
     fo0 = int(18.0 * SR)
     ramp[fo0:] = np.linspace(1, 0, len(rain_) - fo0)
-    amb.add(norm(rain_ * ramp, -24), AT('s13a', 0.0))
+    amb.add(norm(S.lowpass(rain_, 5000) * ramp, -27), AT('s13a', 0.0))
     for k in range(18):
         amb.add(norm(S.tick(hi=k % 2 == 0), -42), AT('s13a', 0.6 + k))
     sparse = [('E4', 1.5), ('A4', 1.4), ('C5', 2.8), ('B4', 1.2), ('A4', 1.2), ('B4', 2.6), ('E4', 2.4)]
@@ -444,7 +470,8 @@ def build():
     music.env(AT('s04', 10.2), AT('s04', 10.25), 0.15, 1.0)
 
     mix = (music.x * db(-4) + far.x * db(-3) + clean.x * db(-2) + sfx.x * db(-2) + amb.x * db(0) + vox.x * db(0))
-    mix = mix[:int(DUR * SR)] * db(3.0)
+    mix = mix[:int(DUR * SR)]
+    mix = compress(mix)
     # soft limiter above -4 dBFS, then make sure the true peak stays under -1 dBFS
     thr = db(-4.0)
     a = np.abs(mix)

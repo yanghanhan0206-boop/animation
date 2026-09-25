@@ -202,6 +202,8 @@ def main():
     ap.add_argument('--size', default='1280x720')
     ap.add_argument('--crf', default='17')
     ap.add_argument('--only', default=None, help='comma list of shots to include (preview)')
+    ap.add_argument('--preset', default='slow')
+    ap.add_argument('--threads', default='0')
     a = ap.parse_args()
     W, H = map(int, a.size.split('x'))
     root = os.path.join(a.root, a.q)
@@ -211,8 +213,8 @@ def main():
            '-i', '-']
     if a.audio:
         cmd += ['-i', a.audio, '-c:a', 'aac', '-b:a', '192k']
-    cmd += ['-c:v', 'libx264', '-preset', 'slow', '-crf', a.crf, '-pix_fmt', 'yuv420p', '-tune', 'film',
-            '-movflags', '+faststart']
+    cmd += ['-c:v', 'libx264', '-preset', a.preset, '-crf', a.crf, '-pix_fmt', 'yuv420p', '-tune', 'film',
+            '-threads', a.threads, '-movflags', '+faststart']
     if a.audio:
         cmd += ['-shortest']
     cmd += [a.out]
@@ -232,7 +234,7 @@ def main():
                 frame = np.zeros((H, W, 3), np.uint8)
             elif shot == 'end':
                 frame = np.asarray(end_card(tl, W, H).convert('RGB'))
-                frame = np.clip(frame.astype(np.float32) / 255 + grain(H, W, k_out, 0.02)[..., None], 0, 1)
+                frame = np.clip(frame.astype(np.float32) / 255 + grain(H, W, int(tl * ANIM_FPS), 0.015)[..., None], 0, 1)
                 frame = (frame * 255).astype(np.uint8)
             else:
                 ai = int(tl * ANIM_FPS + 1e-6)
@@ -253,7 +255,10 @@ def main():
                     x = np.asarray(Image.fromarray((np.clip(x, 0, 1) * 255).astype(np.uint8)).transform(
                         (W, H), Image.AFFINE, (1, 0, dx, 0, 1, dy), resample=Image.BILINEAR), np.float32) / 255
                 lum = x.mean(2, keepdims=True)
-                x = x + grain(H, W, k_out)[..., None] * (0.6 + 0.8 * lum * (1 - lum) * 4)
+                # grain changes once per exposure (12 fps), like each frame of a shoot on twos;
+                # held frames stay identical, which also keeps the bitrate sane
+                gk = 100000 * (list(dict(edl.EDL)).index(shot) + 1) + ai
+                x = x + grain(H, W, gk, 0.024)[..., None] * (0.6 + 0.8 * lum * (1 - lum) * 4)
                 x = np.clip(x, 0, 1)
                 # fade from black at the very start, and into the 3 a.m. scene
                 if shot == 's01':
