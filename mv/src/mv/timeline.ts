@@ -13,7 +13,7 @@ export const BAR = 2.8244;
 export const BEAT = BAR / 4;
 export const bar = (k: number) => BAR0 + k * BAR;
 
-export type Grade = 'gold' | 'night' | 'dawn' | 'autumn' | 'lantern' | 'neutral' | 'jewel' | 'neon';
+export type Grade = 'gold' | 'night' | 'dawn' | 'autumn' | 'lantern' | 'neutral' | 'jewel' | 'neon' | 'paper';
 
 export interface Cue {
   /** Seconds. */
@@ -125,7 +125,7 @@ export const SHOTS: Shot[] = [
   s('autumn', bar(26), bar(27), 'autumn'),
   s('vinyl', bar(27), bar(28), 'gold'),
   s('lethe', bar(28), bar(29), 'lantern'),
-  s('receipt', bar(29), bar(30), 'neutral'),
+  s('receipt', bar(29), bar(30), 'paper'),
   s('farewell', bar(30), bar(31), 'night'),
   s('ending', bar(31), DURATION_S, 'gold'),
 ];

@@ -45,7 +45,7 @@ const LeafLine: React.FC<{text: string; left: number; top: number; size: number;
   </div>
 );
 
-export type LoveSongVariant = 'frame' | 'intro' | 'drop';
+export type LoveSongVariant = 'frame' | 'intro' | 'drop' | 'ending';
 
 /** Reveal for a line of the big title: opacity and blur from a start time. */
 const rev = (t: number, at: number, dur: number) => {
@@ -53,13 +53,23 @@ const rev = (t: number, at: number, dur: number) => {
   return {opacity: p, blur: (1 - p) * 14};
 };
 
-export const LoveSong: React.FC<{t: number; v?: LoveSongVariant}> = ({t, v = 'frame'}) => {
+/** In the ending the lamp stutters once and goes out `out` seconds into the shot. */
+const lampOut = (t: number, out: number) => {
+  if (t < out - 0.42) return 1;
+  if (t < out - 0.3) return 0.35;
+  if (t < out) return 0.92;
+  return 0.05 * (1 - prog(t, out, out + 0.3));
+};
+
+export const LoveSong: React.FC<{t: number; v?: LoveSongVariant; dur?: number}> = ({t, v = 'frame', dur = 3}) => {
   const f = useCurrentFrame();
+  const ending = v === 'ending';
   // Light level, title timing and camera for each use of the shot.
-  const light = v === 'intro' ? prog(t, 0.8, 2.2, easeInOutSine) : 1;
-  const typeOut = v === 'intro' ? prog(t, 4.4, 5.2, easeInOutSine) : 0;
+  const light = v === 'intro' ? prog(t, 0.8, 2.2, easeInOutSine) : ending ? lampOut(t, dur - 0.29) : 1;
+  const typeOut = v === 'intro' ? prog(t, 4.4, 5.2, easeInOutSine) : ending ? 1 : 0;
   const push = v === 'intro' ? prog(t, 4.6, 7.6, easeInOutSine) : v === 'drop' ? prog(t, 0, 2.9, easeInOutSine) * 0.15 : 0;
-  const zoom = 1 + push * (v === 'intro' ? 0.55 : 0.4);
+  const zoom = ending ? 1.22 - 0.16 * prog(t, 0, dur, easeInOutSine) : 1 + push * (v === 'intro' ? 0.55 : 0.4);
+  const credit = ending ? prog(t, 1.1, 2.0, easeOutCubic) : 0;
   const T =
     v === 'intro'
       ? {a: rev(t, 1.45, 0.9), l1: rev(t, 1.6, 1.1), l2: rev(t, 2.9, 1.1), zh: rev(t, 3.4, 1.2)}
@@ -111,7 +121,7 @@ export const LoveSong: React.FC<{t: number; v?: LoveSongVariant}> = ({t, v = 'fr
       ctx.restore();
       // Drops falling through the light.
       ctx.lineCap = 'round';
-      for (let i = 0; i < 14; i++) {
+      for (let i = 0; i < (ending ? 30 : 14); i++) {
         const x = rndRange(`dx${i}`, 1080, 1520);
         const y = ((rnd(`dy${i}`) * 1200 + t * rndRange(`dv${i}`, 380, 620)) % 1200) - 100;
         const w = coneWeight(x, y);
@@ -125,7 +135,7 @@ export const LoveSong: React.FC<{t: number; v?: LoveSongVariant}> = ({t, v = 'fr
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
     },
-    [f, light],
+    [f, light, ending],
   );
 
   const g = 'url(#mic-grille)';
@@ -134,7 +144,7 @@ export const LoveSong: React.FC<{t: number; v?: LoveSongVariant}> = ({t, v = 'fr
       <AbsoluteFill style={{transform: `scale(${zoom})`, transformOrigin: `${MIC.x - 20}px ${MIC.y - 10}px`}}>
       <canvas ref={beam} width={W} height={H} style={{position: 'absolute', inset: 0}} />
       <Bokeh seed="stage" count={220} focus={0.5} drift={[-4, 10]} intensity={1.1 * light} weight={coneWeight} />
-      <svg width={W} height={H} style={{position: 'absolute', inset: 0}}>
+      <svg width={W} height={H} style={{position: 'absolute', inset: 0, opacity: ending ? 0.12 + 0.88 * light : 1}}>
         <defs>
           <pattern id="mic-mesh" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="6" height="6" fill="#0B0A09" />
@@ -187,7 +197,13 @@ export const LoveSong: React.FC<{t: number; v?: LoveSongVariant}> = ({t, v = 'fr
       </div>
       <LeafLine text="LOVE SONG" left={196} top={370} size={128} spacing="0.1em" opacity={T.l1.opacity * (1 - typeOut)} blur={T.l1.blur + typeOut * 12} />
       <LeafLine text="TOUGH SONG" left={196} top={506} size={128} spacing="0.1em" opacity={0.92 * T.l2.opacity * (1 - typeOut)} blur={T.l2.blur + typeOut * 12} />
-      {v !== 'drop' && T.zh.opacity > 0 && (
+      {ending && credit > 0 && (
+        <div style={{position: 'absolute', left: 212, top: 286, opacity: credit, filter: `blur(${(1 - credit) * 6}px)`}}>
+          <div style={{fontFamily: '"Noto Serif SC", serif', fontWeight: 500, fontSize: 34, letterSpacing: '0.62em', color: 'transparent', backgroundImage: 'linear-gradient(180deg, #FFF1CC 0%, #E8C886 30%, #C29A55 60%, #9A7536 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text'}}>林宛瑜</div>
+          <div style={{marginTop: 14, fontFamily: SERIF_EN, fontWeight: 500, fontSize: 19, letterSpacing: '0.5em', color: 'rgba(214,190,140,0.72)'}}>RAPETER</div>
+        </div>
+      )}
+      {v !== 'drop' && v !== 'ending' && T.zh.opacity > 0 && (
         <GoldText text="这是流着泪的情歌" x={fromLeft('这是流着泪的情歌', 206, 52, 0.3)} y={716} size={52} weight={300} spacing={0.3} t={v === 'intro' ? t - 3.4 : t} stagger={0.08} reveal={1} blur={10} glow={0.3} flat="#EFE6D6" opacity={1 - typeOut} />
       )}
     </AbsoluteFill>

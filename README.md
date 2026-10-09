@@ -1,6 +1,6 @@
 # 感谢您的投递 · Thank You for Your Application
 
-> 仓库里的另一个项目：[`mv/`](mv/)，Rapeter《林宛瑜》MV（前 1:32，风格帧阶段）。
+> 仓库里的另一个项目：[`mv/`](mv/)，Rapeter《林宛瑜》MV 前 1:32，成片在 [`mv/output/林宛瑜-MV.mp4`](mv/output/林宛瑜-MV.mp4)。
 
 一部关于秋招的黏土定格动画（约 3 分 13 秒，16:9，24 fps，动画按 12 fps「一拍二」逐格制作）。
 

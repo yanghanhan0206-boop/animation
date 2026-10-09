@@ -36,7 +36,7 @@ const Scene: React.FC<{shot: Shot; t: number}> = ({shot, t}) => {
   const dur = shot.end - shot.start;
   switch (shot.scene) {
     case 'love-song':
-      return <LoveSong t={t} v={shot.v as LoveSongVariant} />;
+      return <LoveSong t={t} v={shot.v as LoveSongVariant} dur={dur} />;
     case 'mic':
       return <MicClose t={t} dur={dur} v={shot.v} />;
     case 'fork':
@@ -76,7 +76,7 @@ const Scene: React.FC<{shot: Shot; t: number}> = ({shot, t}) => {
     case 'farewell':
       return <Departure t={t} text={false} mode="departed" />;
     case 'ending':
-      return <Opening t={t} v="ending" dur={dur} />;
+      return <LoveSong t={t} v="ending" dur={dur} />;
     default:
       return null;
   }

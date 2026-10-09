@@ -19,6 +19,12 @@ GRADES = {
     'autumn':  dict(lift=(0.018, 0.006, 0.004), gain=(1.03, 0.97, 0.90), sat=1.06, con=1.10),
     'lantern': dict(lift=(0.016, 0.004, 0.010), gain=(1.04, 0.97, 0.90), sat=1.08, con=1.08),
     'neutral': dict(lift=(0.0, 0.0, 0.0), gain=(1.0, 1.0, 1.0), sat=1.0, con=1.0),
+    # Stained glass: deep blacks with a violet cast, colours pushed.
+    'jewel':   dict(lift=(0.006, 0.000, 0.016), gain=(1.02, 0.98, 1.00), sat=1.12, con=1.08),
+    # Street neon at night: blue shadows, warm highlights.
+    'neon':    dict(lift=(0.004, 0.006, 0.022), gain=(1.04, 0.97, 0.95), sat=1.10, con=1.08),
+    # Paper under a lamp: neutral, with the bloom held back so white paper stays readable.
+    'paper':   dict(lift=(0.006, 0.004, 0.002), gain=(1.01, 0.99, 0.95), sat=0.96, con=1.04, bloom=0.35, halation=0.4),
 }
 
 
@@ -26,27 +32,50 @@ def srgb_to_linear(c):
     return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
 
 
+# 8-bit decode as a lookup table: the same curve, a fraction of the cost per frame.
+_DECODE = srgb_to_linear(np.arange(256, dtype=np.float32) / 255.0).astype(np.float32)
+_VIGNETTE = {}
+
+
+def _vignette(h, w):
+    if (h, w) not in _VIGNETTE:
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        r = np.sqrt(((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2)
+        _VIGNETTE[(h, w)] = (np.clip((r - 0.55) / 0.85, 0, 1) ** 1.6).astype(np.float32)
+    return _VIGNETTE[(h, w)]
+
+
 def linear_to_srgb(c):
-    c = np.clip(c, 0, None)
-    return np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(c, 1 / 2.4) - 0.055)
+    c = np.maximum(c, 0).astype(np.float32, copy=False)
+    return np.where(c <= 0.0031308, c * 12.92, 1.055 * cv2.pow(c, 1 / 2.4) - 0.055)
 
 
 def finish(rgb8, grade='gold', seed=0, bloom=1.0, halation=1.0, grain=1.0, fringe=1.0, vignette=1.0):
     h, w = rgb8.shape[:2]
-    lin = srgb_to_linear(rgb8.astype(np.float32) / 255.0)
+    g = GRADES[grade]
+    bloom *= g.get('bloom', 1.0)
+    halation *= g.get('halation', 1.0)
+    lin = _DECODE[rgb8]
     lum = lin @ np.array([0.2126, 0.7152, 0.0722], np.float32)
 
     # Bloom: soft-thresholded highlights spread at several radii (light, not blur).
-    knee = np.clip((lum - 0.18) / 0.5, 0, 1) ** 2
-    bright = lin * knee[..., None]
+    # (Sigmas are in half-resolution pixels; the wide ones run further down a pyramid.)
+    knee = np.clip((lum - 0.18) * 2.0, 0, 1)
+    bright = lin * (knee * knee)[..., None]
     small = cv2.resize(bright, (w // 2, h // 2), interpolation=cv2.INTER_AREA)
     glow = np.zeros_like(small)
-    for sigma, weight in ((3, 0.55), (10, 0.45), (28, 0.38), (70, 0.30)):
-        glow += cv2.GaussianBlur(small, (0, 0), sigma) * weight
+    level = small
+    for down, sigma, weight in ((1, 3, 0.55), (2, 10, 0.45), (8, 28, 0.38), (16, 70, 0.30)):
+        level = cv2.resize(small, (w // 2 // down, h // 2 // down), interpolation=cv2.INTER_AREA) if down > 1 else small
+        blurred = cv2.GaussianBlur(level, (0, 0), sigma / down)
+        if down > 1:
+            blurred = cv2.resize(blurred, (w // 2, h // 2), interpolation=cv2.INTER_LINEAR)
+        glow += blurred * weight
     lin = lin + cv2.resize(glow, (w, h), interpolation=cv2.INTER_LINEAR) * 0.55 * bloom
 
     # Halation: film's warm red fringe around the hottest highlights.
-    hot = lin * (np.clip((lum - 0.45) / 0.5, 0, 1) ** 1.5)[..., None]
+    hk = np.clip((lum - 0.45) * 2.0, 0, 1)
+    hot = lin * (hk * np.sqrt(hk))[..., None]
     hal = cv2.GaussianBlur(cv2.resize(hot, (w // 4, h // 4), interpolation=cv2.INTER_AREA), (0, 0), 6)
     hal = cv2.resize(hal, (w, h), interpolation=cv2.INTER_LINEAR).mean(axis=2, keepdims=True)
     lin = lin + hal * np.array([0.55, 0.16, 0.05], np.float32) * halation
@@ -61,7 +90,6 @@ def finish(rgb8, grade='gold', seed=0, bloom=1.0, halation=1.0, grain=1.0, fring
         lin = out
 
     # Grade in display space: lift / gain per channel, contrast around mid-grey, saturation.
-    g = GRADES[grade]
     img = linear_to_srgb(lin)
     img = np.array(g['lift'], np.float32) + img * (np.array(g['gain'], np.float32) - np.array(g['lift'], np.float32))
     img = (img - 0.5) * g['con'] + 0.5
@@ -69,9 +97,7 @@ def finish(rgb8, grade='gold', seed=0, bloom=1.0, halation=1.0, grain=1.0, fring
     img = grey[..., None] + (img - grey[..., None]) * g['sat']
 
     # Vignette.
-    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
-    r = np.sqrt(((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2)
-    img = img * (1 - 0.32 * vignette * np.clip((r - 0.55) / 0.85, 0, 1) ** 1.6)[..., None]
+    img = img * (1 - 0.32 * vignette * _vignette(h, w))[..., None]
 
     # Grain: strongest in the mid-tones, a little in the blacks, slightly coloured.
     rng = np.random.default_rng(seed)

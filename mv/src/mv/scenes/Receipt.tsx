@@ -36,16 +36,16 @@ export const Receipt: React.FC<{t: number; dur: number}> = ({t, dur}) => {
         style={{
           position: 'absolute',
           left: 1180,
-          top: 70 + print,
+          top: 172 + print,
           width: 560,
-          transform: 'translateX(-50%) perspective(1400px) rotateX(10deg) rotateZ(-4deg)',
+          transform: 'translateX(-50%) perspective(1400px) rotateX(10deg) rotateZ(-4deg) scale(0.86)',
           transformOrigin: '50% 0%',
         }}
       >
         <div
           style={{
             padding: '60px 48px 70px',
-            background: 'linear-gradient(180deg, #E9E3D6 0%, #F2EDE2 40%, #DCD5C6 100%)',
+            background: 'linear-gradient(180deg, #D3CCBD 0%, #DED8CA 40%, #B9B1A0 100%)',
             boxShadow: '0 40px 80px rgba(0,0,0,0.7), inset 0 0 40px rgba(0,0,0,0.12)',
             color: '#2A2420',
             fontSize: 34,
