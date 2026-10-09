@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {Bokeh} from '../fx/Bokeh';
-import {clamp, rnd, rndRange} from '../lib/anim';
+import {clamp, easeInOutSine, easeOutCubic, prog, rnd, rndRange} from '../lib/anim';
 import {useCanvas} from '../lib/canvas';
 import {H, SERIF_EN, W} from '../theme';
 import {GoldText, fromLeft} from '../type/GoldText';
@@ -21,7 +21,7 @@ const coneWeight = (x: number, y: number) => {
   return clamp(1 - Math.abs(x - axisX) / half) * 1 + 0.04;
 };
 
-const LeafLine: React.FC<{text: string; left: number; top: number; size: number; spacing: string; opacity?: number}> = ({text, left, top, size, spacing, opacity = 1}) => (
+const LeafLine: React.FC<{text: string; left: number; top: number; size: number; spacing: string; opacity?: number; blur?: number}> = ({text, left, top, size, spacing, opacity = 1, blur = 0}) => (
   <div
     style={{
       position: 'absolute',
@@ -36,7 +36,7 @@ const LeafLine: React.FC<{text: string; left: number; top: number; size: number;
       backgroundImage: 'linear-gradient(180deg, #FFF1CC 0%, #E8C886 30%, #C29A55 55%, #86622C 80%, #C9A260 100%)',
       WebkitBackgroundClip: 'text',
       backgroundClip: 'text',
-      filter: 'drop-shadow(0 0 18px rgba(214,178,110,0.35))',
+      filter: `drop-shadow(0 0 18px rgba(214,178,110,0.35))${blur > 0.05 ? ` blur(${blur}px)` : ''}`,
       opacity,
       whiteSpace: 'nowrap',
     }}
@@ -45,13 +45,33 @@ const LeafLine: React.FC<{text: string; left: number; top: number; size: number;
   </div>
 );
 
-export const LoveSong: React.FC<{t: number}> = ({t}) => {
+export type LoveSongVariant = 'frame' | 'intro' | 'drop';
+
+/** Reveal for a line of the big title: opacity and blur from a start time. */
+const rev = (t: number, at: number, dur: number) => {
+  const p = prog(t, at, at + dur, easeOutCubic);
+  return {opacity: p, blur: (1 - p) * 14};
+};
+
+export const LoveSong: React.FC<{t: number; v?: LoveSongVariant}> = ({t, v = 'frame'}) => {
   const f = useCurrentFrame();
+  // Light level, title timing and camera for each use of the shot.
+  const light = v === 'intro' ? prog(t, 0.8, 2.2, easeInOutSine) : 1;
+  const typeOut = v === 'intro' ? prog(t, 4.4, 5.2, easeInOutSine) : 0;
+  const push = v === 'intro' ? prog(t, 4.6, 7.6, easeInOutSine) : v === 'drop' ? prog(t, 0, 2.9, easeInOutSine) * 0.15 : 0;
+  const zoom = 1 + push * (v === 'intro' ? 0.55 : 0.4);
+  const T =
+    v === 'intro'
+      ? {a: rev(t, 1.45, 0.9), l1: rev(t, 1.6, 1.1), l2: rev(t, 2.9, 1.1), zh: rev(t, 3.4, 1.2)}
+      : v === 'drop'
+        ? {a: rev(t, 0, 0.25), l1: rev(t, 0, 0.3), l2: rev(t, 1.35, 0.3), zh: rev(t, 1.7, 0.5)}
+        : {a: rev(1, 0, 0.1), l1: rev(1, 0, 0.1), l2: rev(1, 0, 0.1), zh: rev(1, 0, 0.1)};
   const beam = useCanvas(
     (ctx) => {
       ctx.fillStyle = '#040303';
       ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = light;
       // The cone: a soft-edged wedge from the lamp down past the microphone.
       ctx.filter = 'blur(12px)';
       const end = {x: MIC.x - 40, y: H + 200};
@@ -103,15 +123,17 @@ export const LoveSong: React.FC<{t: number}> = ({t}) => {
         ctx.stroke();
       }
       ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
     },
-    [f],
+    [f, light],
   );
 
   const g = 'url(#mic-grille)';
   return (
     <AbsoluteFill>
+      <AbsoluteFill style={{transform: `scale(${zoom})`, transformOrigin: `${MIC.x - 20}px ${MIC.y - 10}px`}}>
       <canvas ref={beam} width={W} height={H} style={{position: 'absolute', inset: 0}} />
-      <Bokeh seed="stage" count={220} focus={0.5} drift={[-4, 10]} intensity={1.1} weight={coneWeight} />
+      <Bokeh seed="stage" count={220} focus={0.5} drift={[-4, 10]} intensity={1.1 * light} weight={coneWeight} />
       <svg width={W} height={H} style={{position: 'absolute', inset: 0}}>
         <defs>
           <pattern id="mic-mesh" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -159,12 +181,15 @@ export const LoveSong: React.FC<{t: number}> = ({t}) => {
           <circle cx={0} cy={0} r={58} fill="none" stroke="#2A2219" strokeWidth={2} />
         </g>
       </svg>
-      <div style={{position: 'absolute', left: 206, top: 318, fontFamily: SERIF_EN, fontStyle: 'italic', fontSize: 40, letterSpacing: '0.24em', color: 'rgba(233,214,180,0.7)'}}>
+      </AbsoluteFill>
+      <div style={{position: 'absolute', left: 206, top: 318, fontFamily: SERIF_EN, fontStyle: 'italic', fontSize: 40, letterSpacing: '0.24em', color: 'rgba(233,214,180,0.7)', opacity: T.a.opacity * (1 - typeOut), filter: `blur(${T.a.blur + typeOut * 10}px)`}}>
         it's a
       </div>
-      <LeafLine text="LOVE SONG" left={196} top={370} size={128} spacing="0.1em" />
-      <LeafLine text="TOUGH SONG" left={196} top={506} size={128} spacing="0.1em" opacity={0.92} />
-      <GoldText text="这是流着泪的情歌" x={fromLeft('这是流着泪的情歌', 206, 52, 0.3)} y={716} size={52} weight={300} spacing={0.3} t={t} stagger={0.08} reveal={1} blur={10} glow={0.3} flat="#EFE6D6" />
+      <LeafLine text="LOVE SONG" left={196} top={370} size={128} spacing="0.1em" opacity={T.l1.opacity * (1 - typeOut)} blur={T.l1.blur + typeOut * 12} />
+      <LeafLine text="TOUGH SONG" left={196} top={506} size={128} spacing="0.1em" opacity={0.92 * T.l2.opacity * (1 - typeOut)} blur={T.l2.blur + typeOut * 12} />
+      {v !== 'drop' && T.zh.opacity > 0 && (
+        <GoldText text="这是流着泪的情歌" x={fromLeft('这是流着泪的情歌', 206, 52, 0.3)} y={716} size={52} weight={300} spacing={0.3} t={v === 'intro' ? t - 3.4 : t} stagger={0.08} reveal={1} blur={10} glow={0.3} flat="#EFE6D6" opacity={1 - typeOut} />
+      )}
     </AbsoluteFill>
   );
 };

@@ -28,7 +28,7 @@ interface Lamp {
 
 const LAMPS: Lamp[] = (() => {
   const out: Lamp[] = [];
-  for (let z = 3; z < SPLIT; z += 2.5) {
+  for (let z = -70; z < SPLIT; z += 2.5) {
     for (const x of [-4.4, 4.4]) out.push({x, z, rgb: AMBER, power: 1, phase: rnd(`fl${z}${x}`)});
   }
   for (let z = 15.5; z < SPLIT; z += 3) out.push({x: 0, z, rgb: WHITE, power: 0.3, phase: 0});
@@ -51,7 +51,9 @@ const FIGURE =
   'L63 228 L62 296 C62 300 56 302 52 300 L51 236 L49 236 L46 300 C42 302 37 300 37 296 L37 228 ' +
   'L36 198 C30 206 20 206 16 196 L20 168 C14 150 10 128 12 108 L15 76 C18 64 28 58 40 56 Z';
 
-export const Fork: React.FC<{t: number}> = ({t}) => {
+export const Fork: React.FC<{t: number; text?: boolean; camZ?: number}> = ({t, text = true, camZ = 0}) => {
+  // Everything on the ground is placed relative to the camera's distance along the road.
+  const P = (x: number, y: number, z: number) => project(CAM, x, y, Math.max(0.8, z - camZ));
   const f = useCurrentFrame();
   const ref = useCanvas(
     (ctx) => {
@@ -116,7 +118,7 @@ export const Fork: React.FC<{t: number}> = ({t}) => {
         for (let k = 0; k < 26; k++) {
           const z = 160 + row * 40;
           const x = 30 + k * 7 + row * 6;
-          const p = project(CAM, x, 0.2, z);
+          const p = P(x, 0.2, z);
           drawLight(ctx, blueImg, p.x, p.y, clamp(p.s * 1.4, 2.2, 6) * 2.6, 0.9 * (0.8 + 0.2 * noise1(t * 2 + k + row * 9)));
         }
       }
@@ -165,7 +167,7 @@ export const Fork: React.FC<{t: number}> = ({t}) => {
       const sheen = (pts: [number, number][], col: string) => {
         ctx.beginPath();
         pts.forEach(([x, z], i) => {
-          const p = project(CAM, x, 0, z);
+          const p = P(x, 0, Math.max(z, camZ + 0.8));
           if (i) ctx.lineTo(p.x, p.y);
           else ctx.moveTo(p.x, p.y);
         });
@@ -185,23 +187,25 @@ export const Fork: React.FC<{t: number}> = ({t}) => {
       // Lamps, far to near, with their reflections smeared down the wet road.
       const sorted = [...LAMPS].sort((a, b) => b.z - a.z);
       for (const L of sorted) {
-        const p = project(CAM, L.x, 0.35, L.z);
+        const zz = L.z - camZ;
+        if (zz < 0.9) continue;
+        const p = P(L.x, 0.35, L.z);
         if (p.x < -50 || p.x > W + 50) continue;
-        const fog = clamp(1 - L.z / 620);
+        const fog = clamp(1 - zz / 620);
         const flick = 0.92 + 0.08 * noise1(t * 3 + L.phase * 50);
         const blue = L.x > 0 && L.z > SPLIT + 20;
         const rgb: [number, number, number] = blue && L.rgb === AMBER ? [255, 190, 120] : L.rgb;
         const img = lightSprite(rgb);
-        const r = clamp(p.s * 0.42, 1.4, 20);
+        const r = clamp(p.s * 0.42, 1.4, 34);
         drawLight(ctx, img, p.x, p.y, r * 2.6, L.power * (0.35 + 0.65 * fog) * flick);
         // Reflection: a soft vertical smear below the lamp.
-        const g = project(CAM, L.x, 0, L.z);
+        const g = P(L.x, 0, L.z);
         const len = clamp(p.s * 2.2, 4, 140);
         ctx.globalAlpha = 0.22 * L.power * fog;
         ctx.drawImage(img, g.x - r * 1.2, g.y, r * 2.4, len);
       }
       // Beacon at the end of the dark branch, and a warm cluster at the end of the bright one.
-      const beacon = project(CAM, 520 * Math.sin(ANGLE), 6, SPLIT + 520 * Math.cos(ANGLE));
+      const beacon = P(520 * Math.sin(ANGLE), 6, SPLIT + 520 * Math.cos(ANGLE));
       const blink = Math.pow(0.5 + 0.5 * Math.sin(t * 3.2), 6);
       drawLight(ctx, lightSprite(RED, 0.8), beacon.x, beacon.y, 26, 0.35 + 0.65 * blink);
       ctx.globalAlpha = 1;
@@ -215,12 +219,12 @@ export const Fork: React.FC<{t: number}> = ({t}) => {
       ctx.fillStyle = mist;
       ctx.fillRect(0, CAM.horizon - 40, W, 100);
     },
-    [f],
+    [f, camZ],
   );
 
   // The figure stands on the trunk just short of the split, lit from ahead.
   const fz = 10.5;
-  const feet = project(CAM, 0.2, 0, fz);
+  const feet = P(0.2, 0, fz);
   const figH = 1.78 * feet.s;
   const sc = figH / 300;
   return (
@@ -241,6 +245,8 @@ export const Fork: React.FC<{t: number}> = ({t}) => {
         </g>
         <ellipse cx={feet.x} cy={feet.y + 2} rx={figH * 0.22} ry={figH * 0.03} fill="#000" opacity={0.6} />
       </svg>
+      {text && (
+        <>
       <div
         style={{
           position: 'absolute',
@@ -257,6 +263,8 @@ export const Fork: React.FC<{t: number}> = ({t}) => {
       </div>
       <GoldText text="能否放得下" x={fromLeft('能否放得下', 210, 64, 0.18)} y={806} size={64} weight={300} spacing={0.18} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.4} flat="#EFE6D6" />
       <GoldText text="站在未来的分叉口" x={fromLeft('站在未来的分叉口', 210, 64, 0.18)} y={884} size={64} weight={500} spacing={0.18} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.8} />
+        </>
+      )}
     </AbsoluteFill>
   );
 };

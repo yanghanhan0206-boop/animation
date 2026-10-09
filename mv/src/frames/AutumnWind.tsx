@@ -61,7 +61,7 @@ const LEAVES: Leaf[] = Array.from({length: 175}, (_, i) => ({
   color: PALETTE[Math.floor(rnd(`lc${i}`) * PALETTE.length)],
 }));
 
-export const AutumnWind: React.FC<{t: number}> = ({t}) => {
+export const AutumnWind: React.FC<{t: number; text?: boolean}> = ({t, text = true}) => {
   const f = useCurrentFrame();
   const ref = useCanvas(
     (ctx) => {
@@ -151,12 +151,16 @@ export const AutumnWind: React.FC<{t: number}> = ({t}) => {
   return (
     <AbsoluteFill>
       <canvas ref={ref} width={W} height={H} style={{position: 'absolute', inset: 0}} />
+      {text && (
+        <>
       <div style={{position: 'absolute', left: 212, top: 752, fontFamily: SERIF_EN, fontStyle: 'italic', fontSize: 28, letterSpacing: '0.2em', color: 'rgba(255,214,180,0.65)'}}>
         the autumn wind again
       </div>
       <GoldText text="秋风再起" x={fromLeft('秋风再起', 210, size, sp)} y={812} size={size} weight={300} spacing={sp} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.3} flat="#F3E6DA" />
       <GoldText text={stay} x={fromLeft(stay, 210, size, sp)} y={892} size={size} weight={500} spacing={sp} t={t} stagger={0.05} reveal={0.8} blur={10} glow={0.8} />
       <DustText text="爱你" x={210 + stayLen + size * sp + lineLength(2, size, sp) / 2} y={892} size={size} weight={500} spacing={sp} t={t} stagger={0.05} reveal={0.6} dissolve={3.4} dissolveDur={1.4} glow={0.8} wind={[300, -60]} seed="aini" />
+        </>
+      )}
     </AbsoluteFill>
   );
 };

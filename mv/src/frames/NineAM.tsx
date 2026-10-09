@@ -81,10 +81,12 @@ const stripes = (t: number) =>
 
 const SLOPE = -0.52;
 
-export const NineAM: React.FC<{t: number}> = ({t}) => {
+export const NineAM: React.FC<{t: number; text?: boolean; mode?: 'dawn' | 'night'}> = ({t, text = true, mode = 'dawn'}) => {
+  const night = mode === 'night';
   const f = useCurrentFrame();
   const inStripe = (x: number, y: number) => {
     const u = x + (y - 540) * SLOPE;
+    if (night) return 0.35;
     return stripes(t).some((s) => Math.abs(u - s.c) < s.w / 2) ? 1 : 0.12;
   };
   const room = useCanvas(
@@ -96,7 +98,7 @@ export const NineAM: React.FC<{t: number}> = ({t}) => {
       ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'lighter';
       ctx.filter = 'blur(10px)';
-      for (const s of stripes(t)) {
+      for (const s of night ? [] : stripes(t)) {
         const quad = (u0: number, u1: number, fill: string | CanvasGradient) => {
           ctx.beginPath();
           ctx.moveTo(u0 + 540 * SLOPE, 0);
@@ -115,7 +117,15 @@ export const NineAM: React.FC<{t: number}> = ({t}) => {
         quad(s.c + s.w / 2 - 10, s.c + s.w / 2, 'rgba(255,190,120,0.18)');
       }
       ctx.filter = 'none';
-      const win = ctx.createRadialGradient(1900, 60, 0, 1900, 60, 1200);
+      if (night) {
+        // Only the phone lights the room: a cold glow from below.
+        const ph = ctx.createRadialGradient(1250, 1150, 0, 1250, 1150, 1100);
+        ph.addColorStop(0, 'rgba(120,170,255,0.26)');
+        ph.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = ph;
+        ctx.fillRect(0, 0, W, H);
+      }
+      const win = ctx.createRadialGradient(1900, 60, 0, 1900, 60, night ? 1 : 1200);
       win.addColorStop(0, 'rgba(255,214,170,0.22)');
       win.addColorStop(0.4, 'rgba(140,170,230,0.06)');
       win.addColorStop(1, 'rgba(0,0,0,0)');
@@ -123,13 +133,13 @@ export const NineAM: React.FC<{t: number}> = ({t}) => {
       ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'source-over';
     },
-    [f],
+    [f, night],
   );
 
   return (
     <AbsoluteFill>
       <canvas ref={room} width={W} height={H} style={{position: 'absolute', inset: 0}} />
-      <div style={{position: 'absolute', left: 150, top: 160, fontFamily: SERIF_EN, fontWeight: 500, fontSize: 300, lineHeight: 1, letterSpacing: '0.02em', color: 'rgba(200,215,240,0.13)'}}>09:00</div>
+      <div style={{position: 'absolute', left: 150, top: 160, fontFamily: SERIF_EN, fontWeight: 500, fontSize: 300, lineHeight: 1, letterSpacing: '0.02em', color: 'rgba(200,215,240,0.13)'}}>{night ? '03:12' : '09:00'}</div>
       <Bokeh seed="dawn" count={150} focus={0.45} drift={[6, -4]} intensity={0.9} weight={inStripe} />
       <div
         style={{
@@ -142,7 +152,7 @@ export const NineAM: React.FC<{t: number}> = ({t}) => {
           transformOrigin: '50% 100%',
         }}
       >
-        <div style={{position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', gap: 40, transform: `translateY(${t * 26 - 430}px)`}}>
+        <div style={{position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', gap: 40, transform: `translateY(${night ? t * 150 - 700 : t * 26 - 430}px)`}}>
           {LOG.map((m, i) => {
             const d = Math.abs(i - FOCUS);
             const blur = Math.max(0, d - 1.2) * 2.2;
@@ -157,11 +167,15 @@ export const NineAM: React.FC<{t: number}> = ({t}) => {
           })}
         </div>
       </div>
+      {text && (
+        <>
       <div style={{position: 'absolute', left: 212, top: 752, fontFamily: SERIF_EN, fontStyle: 'italic', fontSize: 28, letterSpacing: '0.2em', color: 'rgba(214,226,240,0.6)'}}>
         scrolling back · 09:00 a.m.
       </div>
       <GoldText text="翻聊天记录看" x={fromLeft('翻聊天记录看', 210, 64, 0.18)} y={812} size={64} weight={300} spacing={0.18} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.2} flat="#EEF1F5" />
       <GoldText text="直到早上九点钟" x={fromLeft('直到早上九点钟', 210, 64, 0.18)} y={892} size={64} weight={500} spacing={0.18} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.8} />
+        </>
+      )}
     </AbsoluteFill>
   );
 };

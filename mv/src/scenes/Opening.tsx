@@ -11,12 +11,19 @@ const LIGHT = {x: 1484, y: 262};
 const TITLE = {x: 1118, y: 540};
 
 /** Black, a single distant light, gold dust drifting through it; the title writes itself in. */
-export const Opening: React.FC<{t: number}> = ({t}) => {
-  const zoom = lerp(1, 1.04, prog(t, 0, 14, easeInOutSine));
-  const flare = prog(t, 1.0, 3.8, easeInOutSine) * (0.94 + 0.06 * Math.sin(t * 1.3));
-  const line = prog(t, 2.6, 5.2, easeInOutSine);
-  const credit = prog(t, 6.0, 8.4, easeOutCubic);
-  const sweep = prog(t, 7.4, 10.2);
+export type OpeningVariant = 'frame' | 'title' | 'ending';
+
+export const Opening: React.FC<{t: number; v?: OpeningVariant; dur?: number}> = ({t, v = 'frame', dur = 3}) => {
+  const fast = v === 'title';
+  const end = v === 'ending';
+  const zoom = end ? lerp(1.03, 1.0, prog(t, 0, dur, easeInOutSine)) : fast ? lerp(1, 1.035, prog(t, 0, 3, easeInOutSine)) : lerp(1, 1.04, prog(t, 0, 14, easeInOutSine));
+  // In the ending the light dims and everything goes to black over the last second.
+  const fade = end ? 1 - prog(t, dur - 1.1, dur - 0.05, easeInOutSine) : 1;
+  const flare = (fast ? prog(t, 0, 0.5, easeInOutSine) : end ? lerp(1, 0.35, prog(t, 0.3, dur - 0.6, easeInOutSine)) : prog(t, 1.0, 3.8, easeInOutSine)) * (0.94 + 0.06 * Math.sin(t * 1.3)) * fade;
+  const line = fast ? prog(t, 0, 0.9, easeInOutSine) : end ? 1 : prog(t, 2.6, 5.2, easeInOutSine);
+  const credit = fast ? prog(t, 0.9, 1.7, easeOutCubic) : end ? 1 : prog(t, 6.0, 8.4, easeOutCubic);
+  const sweep = fast ? prog(t, 1.3, 2.8) : end ? prog(t, 0.2, 2.2) : prog(t, 7.4, 10.2);
+  const titleT = fast ? (t - 0.1) * 2.4 : end ? 20 : t - 3.4;
 
   return (
     <AbsoluteFill>
@@ -27,7 +34,7 @@ export const Opening: React.FC<{t: number}> = ({t}) => {
           count={170}
           focus={0.55}
           drift={[-11, -7]}
-          intensity={prog(t, 0.3, 3.2, easeInOutSine)}
+          intensity={(fast || end ? 1 : prog(t, 0.3, 3.2, easeInOutSine)) * fade}
           weight={(x, y) => 0.35 + 0.65 * Math.max(0, 1 - Math.hypot(x - LIGHT.x, y - LIGHT.y) / 900)}
         />
         <Flare x={LIGHT.x} y={LIGHT.y} intensity={flare} size={1} streak={lerp(0.25, 1.15, prog(t, 1.0, 6.0, easeInOutSine))} />
@@ -41,10 +48,10 @@ export const Opening: React.FC<{t: number}> = ({t}) => {
               <stop offset="1" stopColor={GOLD.dark} stopOpacity="0" />
             </linearGradient>
           </defs>
-          <rect x={1012} y={318} width={1.4} height={430 * line} fill="url(#open-line)" />
+          <rect x={1012} y={318} width={1.4} height={430 * line} fill="url(#open-line)" opacity={fade} />
         </svg>
 
-        <GoldText text="林宛瑜" x={TITLE.x} y={TITLE.y} size={118} weight={500} spacing={0.46} vertical t={t - 3.4} stagger={0.55} reveal={1.7} blur={22} drift={28} sweep={sweep} glow={0.65} />
+        <GoldText text="林宛瑜" x={TITLE.x} y={TITLE.y} size={118} weight={500} spacing={0.46} vertical t={titleT} stagger={0.55} opacity={fade} reveal={1.7} blur={22} drift={28} sweep={sweep} glow={0.65} />
 
         <div
           style={{
@@ -63,7 +70,7 @@ export const Opening: React.FC<{t: number}> = ({t}) => {
             fontSize: 25,
             letterSpacing: `${lerp(1.2, 0.72, credit)}em`,
             color: GOLD.champagne,
-            opacity: 0.78 * credit,
+            opacity: 0.78 * credit * fade,
             filter: `blur(${(1 - credit) * 6}px)`,
           }}
         >

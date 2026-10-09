@@ -38,15 +38,19 @@ const COLS: {key: keyof Row; n: number; label: string}[] = [
   {key: 'status', n: 4, label: '状态 STATUS'},
 ];
 
-const TW = 42;
-const TH = 60;
-const GAP = 4;
+export const TW = 42;
+export const TH = 60;
+export const GAP = 4;
 const COL_GAP = 22;
 const ROW_GAP = 12;
-const AMBER = '#FFB54A';
+export const AMBER = '#FFB54A';
+const LATIN_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const CJK_POOL = '纽约上海北京广州成都西安东京首尔巴黎伦敦延误值机取消到达登机已起飞最后别离';
+
+export type BoardMode = 'still' | 'flip' | 'departed';
 const PAPER = 'rgba(233,230,223,0.6)';
 
-const Tile: React.FC<{ch: string; color: string; flip?: number; dim?: boolean}> = ({ch, color, flip = 0, dim}) => {
+export const Tile: React.FC<{ch: string; color: string; flip?: number; dim?: boolean}> = ({ch, color, flip = 0, dim}) => {
   const isCn = /[一-鿿]/.test(ch);
   const glyph: React.CSSProperties = {
     position: 'absolute',
@@ -87,7 +91,7 @@ const Tile: React.FC<{ch: string; color: string; flip?: number; dim?: boolean}> 
   );
 };
 
-const Board: React.FC<{t: number}> = ({t}) => (
+const Board: React.FC<{t: number; mode: BoardMode}> = ({t, mode}) => (
   <div style={{display: 'flex', flexDirection: 'column', gap: ROW_GAP, padding: '26px 30px 30px', background: 'linear-gradient(#0E0E0F, #070708)', borderRadius: 10, boxShadow: '0 0 0 2px #151517, 0 30px 80px rgba(0,0,0,0.8)'}}>
     <div style={{display: 'flex', gap: COL_GAP, marginBottom: 4}}>
       {COLS.map((c) => (
@@ -99,15 +103,30 @@ const Board: React.FC<{t: number}> = ({t}) => (
     {ROWS.map((r, ri) => (
       <div key={ri} style={{display: 'flex', gap: COL_GAP, position: 'relative'}}>
         {r.hot && <div style={{position: 'absolute', left: -18, right: -18, top: -7, bottom: -7, borderRadius: 8, background: 'rgba(255,160,60,0.10)', boxShadow: '0 0 40px rgba(255,150,50,0.22)'}} />}
-        {COLS.map((c) => {
-          const chars = [...String(r[c.key] ?? '')];
+        {COLS.map((c, ci) => {
+          const departed = mode === 'departed' && r.hot && c.key === 'status';
+          const chars = [...String(departed ? '已起飞' : (r[c.key] ?? ''))];
           return (
             <div key={c.key} style={{display: 'flex', gap: GAP}}>
               {Array.from({length: c.n}, (_, k) => {
                 const ch = chars[k] ?? '';
-                // The New York row is still settling: a few flaps mid-flip, re-seeded every few frames.
-                const flipping = r.hot && ch && rnd(`flip${c.key}${k}${Math.floor(t * 6)}`) < 0.18 ? clamp(0.25 + rnd(`fa${c.key}${k}${Math.floor(t * 6)}`) * 0.6) : 0;
-                return <Tile key={k} ch={ch} color={r.hot ? AMBER : PAPER} flip={flipping} dim={!r.hot} />;
+                let shown = ch;
+                let flipping = 0;
+                // Flaps spin through random characters until they land, row by row; the New
+                // York row lands last. 'departed' re-spins only its status column.
+                const settle =
+                  mode === 'flip' ? 0.1 + ri * 0.08 + ci * 0.05 + k * 0.025 + (r.hot ? 0.62 : 0) : departed ? 1.25 + k * 0.09 : -1;
+                const from = departed ? 1.0 : 0;
+                if (t < settle && t >= from && (ch || departed)) {
+                  const pool = /[\u4e00-\u9fff]/.test(ch) || departed ? CJK_POOL : LATIN_POOL;
+                  const step = Math.floor(t * 16);
+                  shown = [...pool][Math.floor(rnd(`sp${ri}${ci}${k}${step}`) * [...pool].length)];
+                  flipping = (t * 16) % 1;
+                } else if (mode === 'still' && r.hot && ch && rnd(`flip${c.key}${k}${Math.floor(t * 6)}`) < 0.18) {
+                  // The style frame: a few flaps of the New York row still settling.
+                  flipping = clamp(0.25 + rnd(`fa${c.key}${k}${Math.floor(t * 6)}`) * 0.6);
+                }
+                return <Tile key={k} ch={shown} color={r.hot ? AMBER : PAPER} flip={flipping} dim={!r.hot} />;
               })}
             </div>
           );
@@ -117,7 +136,7 @@ const Board: React.FC<{t: number}> = ({t}) => (
   </div>
 );
 
-export const Departure: React.FC<{t: number}> = ({t}) => {
+export const Departure: React.FC<{t: number; text?: boolean; mode?: BoardMode}> = ({t, text = true, mode = 'still'}) => {
   const f = useCurrentFrame();
   const bg = useCanvas(
     (ctx) => {
@@ -169,7 +188,7 @@ export const Departure: React.FC<{t: number}> = ({t}) => {
         transformOrigin: '50% 50%',
       }}
     >
-      <Board t={t} />
+      <Board t={t} mode={mode} />
     </div>
   );
   return (
@@ -181,11 +200,15 @@ export const Departure: React.FC<{t: number}> = ({t}) => {
         {board}
       </Reflect>
       <div style={{position: 'absolute', left: 0, right: 0, top: 664, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,170,90,0.12), transparent)'}} />
+      {text && (
+        <>
       <div style={{position: 'absolute', left: 212, top: 752, fontFamily: SERIF_EN, fontStyle: 'italic', fontSize: 28, letterSpacing: '0.2em', color: 'rgba(233,214,180,0.6)'}}>
         flight LW 0520 · to New York
       </div>
       <GoldText text="到纽约的班机" x={fromLeft('到纽约的班机', 210, 64, 0.18)} y={812} size={64} weight={300} spacing={0.18} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.3} flat="#EFE8DC" />
       <GoldText text="难道是最后一场别离" x={fromLeft('难道是最后一场别离', 210, 64, 0.18)} y={892} size={64} weight={500} spacing={0.18} t={t} stagger={0.06} reveal={0.8} blur={10} glow={0.8} />
+        </>
+      )}
     </AbsoluteFill>
   );
 };
