@@ -1,0 +1,31 @@
+{
+  "name": "xuanzhe",
+  "private": true,
+  "version": "1.0.0",
+  "description": "无声科普短视频《你哭的不是选择，是悬着》— Remotion 工程",
+  "scripts": {
+    "dev": "remotion studio",
+    "check": "tsc --noEmit && tsx scripts/check-timing.ts",
+    "stills": "tsx scripts/render-stills.ts",
+    "render:full": "remotion render Full out/你哭的不是选择是悬着_完整版.mp4",
+    "render:part1": "remotion render Part1 out/你哭的不是选择是悬着_上集.mp4",
+    "render:part2": "remotion render Part2 out/你哭的不是选择是悬着_下集.mp4",
+    "render:all": "npm run render:full && npm run render:part1 && npm run render:part2"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans-sc": "5.3.1",
+    "@fontsource/noto-serif-sc": "5.3.1",
+    "@remotion/cli": "4.0.535",
+    "@remotion/noise": "4.0.535",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "4.0.535",
+    "@remotion/renderer": "4.0.535",
+    "@types/react": "19.1.8",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}
