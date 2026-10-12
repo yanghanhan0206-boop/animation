@@ -4,7 +4,8 @@
 
 片中所有元素都由 SVG 和 Canvas 绘制，没有用任何照片或外部素材。唯一的外部资源是 Noto Serif SC 字体，它通过 `@fontsource` 打包进项目，渲染时不需要联网。
 
-当前阶段：**风格预览**。代表帧见 [`preview/`](preview/)，总览图是 [`preview/00_总览.jpg`](preview/00_总览.jpg)。
+- 成片：[`output/摆锤效应.mp4`](output/摆锤效应.mp4)（1920×1080，30fps，100 秒，H.264，无音轨，约 32 MB）
+- 每个镜头的代表帧：[`preview/`](preview/)，总览图是 [`preview/00_总览.jpg`](preview/00_总览.jpg)
 
 ## 常用命令
 
@@ -13,7 +14,8 @@ npm install
 npm run studio                 # 打开 Remotion Studio 逐帧预览，时间线上标好了 9 个镜头
 npm run stills                 # 渲染 preview 用的代表帧 → out/stills/
 node scripts/render-stills.mjs 12.5 61   # 渲染任意时刻（秒）的静帧
-npm run render                 # 导出整片 → out/摆锤效应.mp4（--muted，不带音轨）
+npm run render                 # 导出母版 → out/master.mp4（--muted 不带音轨，CRF 16，约 100 MB；4 核约 7 分钟）
+npm run deliver                # 压成成片 → output/摆锤效应.mp4（yuv420p / BT.709，约 32 MB）
 ```
 
 如果环境里无法联网下载 Chrome Headless Shell，可以用环境变量指定本机浏览器，例如：

@@ -6,8 +6,9 @@
   "scripts": {
     "studio": "remotion studio",
     "stills": "node scripts/render-stills.mjs",
-    "render": "remotion render PendulumEffect out/摆锤效应.mp4 --muted --codec=h264 --crf=16",
-    "typecheck": "tsc --noEmit"
+    "render": "remotion render PendulumEffect out/master.mp4 --muted --codec=h264 --crf=16 --concurrency=4",
+    "typecheck": "tsc --noEmit",
+    "deliver": "bash scripts/deliver.sh"
   },
   "dependencies": {
     "@fontsource/noto-serif-sc": "5.2.9",
