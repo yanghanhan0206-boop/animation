@@ -5,7 +5,7 @@
 import React from 'react';
 import {PENDULUM, S3, S5, S6, S7} from '../timeline';
 import {easeOutCubic, pulse, ramp} from '../lib/math';
-import {EVENTS, mainAmpSmooth, mainExtremes} from '../sim/physics';
+import {EVENTS, mainAmpAhead, mainExtremes} from '../sim/physics';
 import {GoldText} from '../components/GoldText';
 
 export type Side = 'left' | 'right';
@@ -22,11 +22,11 @@ const LETTER_SPACING = 0.06;
 /** 词的中心位置（世界坐标）：贴在摆动端点外侧，随摆幅平滑外移 */
 export const poleWordPos = (side: Side, t: number, text: string) => {
   const s = SIGN[side];
-  const A = mainAmpSmooth(t);
+  const A = mainAmpAhead(t);
   const {size} = WORD_STYLE[text];
   const w = [...text].length * size * (1 + LETTER_SPACING);
   return {
-    x: s * (PENDULUM.length * Math.sin(A) + PENDULUM.bobRadius + 46 + w / 2),
+    x: s * (PENDULUM.length * Math.sin(A) + PENDULUM.bobRadius + 62 + w / 2),
     y: PENDULUM.length * Math.cos(A) - 18,
   };
 };

@@ -159,7 +159,7 @@ export const S7 = {
     periodRatio: 3, // 周期约是小摆锤的 3 倍
     amplitude: 24,
     leftExtremeAt: 67.4, // 相位锚点：此刻到达“鸡娃”一端
-    pivot: [800, -70] as const, // 屏幕坐标
+    pivot: [780, -70] as const, // 屏幕坐标
     length: 880,
     bobRadius: 86,
     leftWord: '鸡娃',
@@ -174,7 +174,7 @@ export const S8 = {
   end: 88,
   subtitle: '你发誓不要成为父母那样，可你接过的力量，正要撞向下一颗',
   subtitleAt: 0.6,
-  bigOut: [75.0, 77.2] as const,
+  bigOut: [74.8, 76.3] as const,
   unsync: {start: 75.0, end: 77.5},
   settle: {start: 75.5, end: 80.0, to: 0}, // 摆幅收到静止，屏息等待冲击
   beamDraw: [77.6, 78.9] as const, // 横梁从家长摆锤的支点向左画出
@@ -228,7 +228,14 @@ export const CRADLE = {
  * 每个关键帧：在时刻 t，世界坐标 focus 这个点出现在屏幕 at 处，缩放为 zoom。
  * 世界原点 (0,0) 是主摆锤的支点。相邻关键帧之间用缓入缓出插值。
  */
-export type CameraKey = {t: number; zoom: number; focus: [number, number]; at: [number, number]};
+export type CameraKey = {
+  t: number;
+  zoom: number;
+  focus: [number, number];
+  at: [number, number];
+  /** 到达这个关键帧的这一段路径：'xFirst' = 先横移再下沉（画面位置走一条弧线） */
+  path?: 'xFirst';
+};
 export const CAMERA: CameraKey[] = [
   {t: 0, zoom: 1.0, focus: [0, 0], at: [960, 92]},
   {t: 27.6, zoom: 1.035, focus: [0, 0], at: [960, 92]},
@@ -237,8 +244,8 @@ export const CAMERA: CameraKey[] = [
   {t: 41.0, zoom: 0.86, focus: [0, 0], at: [960, 232]},
   {t: 50.0, zoom: 0.87, focus: [0, 0], at: [950, 236]},
   {t: 64.6, zoom: 0.56, focus: [0, 0], at: [860, 300]},
-  {t: 72.5, zoom: 0.27, focus: [0, 0], at: [1700, 590]},
-  {t: 75.2, zoom: 0.265, focus: [0, 0], at: [1700, 592]},
+  {t: 72.5, zoom: 0.27, focus: [0, 0], at: [1745, 548], path: 'xFirst'},
+  {t: 75.2, zoom: 0.265, focus: [0, 0], at: [1745, 550]},
   {t: 79.6, zoom: 0.9, focus: [-90, 0], at: [960, 132]},
   {t: 94.0, zoom: 0.91, focus: [-90, 0], at: [960, 132]},
   {t: 100, zoom: 1.12, focus: [0, 768], at: [960, 545]},

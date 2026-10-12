@@ -234,7 +234,17 @@ const simulateMain = () => {
     phi += w * DT;
   }
 
-  return {theta, amp, ampSmooth, extremes, kicks};
+  // 两端的词要给摆球“让位”：取未来 1.2 秒内的最大摆幅再平滑，摆幅变大之前词就已经移到新的端点外侧
+  const LOOK = Math.round(1.2 / DT);
+  const ahead = new Float64Array(N);
+  let s = amp[0];
+  for (let i = 0; i < N; i++) {
+    let m = amp[i];
+    for (let j = i + 1; j <= Math.min(N - 1, i + LOOK); j += 4) m = Math.max(m, amp[j]);
+    s += (m - s) * Math.min(1, DT / 0.45);
+    ahead[i] = s;
+  }
+  return {theta, amp, ampSmooth, ahead, extremes, kicks};
 };
 
 const MAIN = simulateMain();
@@ -243,6 +253,8 @@ export const mainExtremes = MAIN.extremes;
 export const mainKicks = MAIN.kicks;
 export const kickById = (id: string) => MAIN.kicks.find((k) => k.id === id)!;
 export const mainAmpSmooth = (t: number) => sample(MAIN.ampSmooth, t);
+/** 给两端的词定位用：提前看到即将变大的摆幅 */
+export const mainAmpAhead = (t: number) => sample(MAIN.ahead, t);
 export const mainAmp = (t: number) => sample(MAIN.amp, t);
 
 /** 第一个满足条件的端点到达 */

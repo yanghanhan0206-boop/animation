@@ -13,6 +13,8 @@ export const cameraAt = (t: number): Cam => {
   let k0 = keys[0];
   let k1 = keys[0];
   let u = 0;
+  let ux = -1;
+  let uy = -1;
   if (t >= keys[keys.length - 1].t) {
     k0 = k1 = keys[keys.length - 1];
   } else if (t > keys[0].t) {
@@ -20,7 +22,12 @@ export const cameraAt = (t: number): Cam => {
       if (t <= keys[i + 1].t) {
         k0 = keys[i];
         k1 = keys[i + 1];
-        u = easeInOutSine((t - k0.t) / (k1.t - k0.t));
+        const lin = (t - k0.t) / (k1.t - k0.t);
+        u = easeInOutSine(lin);
+        if (k1.path === 'xFirst') {
+          ux = easeInOutSine(Math.min(1, lin * 1.25));
+          uy = easeInOutSine(Math.max(0, lin * 1.25 - 0.25));
+        }
         break;
       }
     }
@@ -28,8 +35,8 @@ export const cameraAt = (t: number): Cam => {
   const zoom = Math.exp(lerp(Math.log(k0.zoom), Math.log(k1.zoom), u));
   const fx = lerp(k0.focus[0], k1.focus[0], u);
   const fy = lerp(k0.focus[1], k1.focus[1], u);
-  const ax = lerp(k0.at[0], k1.at[0], u);
-  const ay = lerp(k0.at[1], k1.at[1], u);
+  const ax = lerp(k0.at[0], k1.at[0], ux >= 0 ? ux : u);
+  const ay = lerp(k0.at[1], k1.at[1], uy >= 0 ? uy : u);
   return {zoom, px: ax - fx * zoom, py: ay - fy * zoom};
 };
 
