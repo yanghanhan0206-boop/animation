@@ -16,6 +16,7 @@ export const SKY_CENTER = {x: 960, y: 460};
 /** 镜头13 结束时主角的放大倍数 */
 export const HERO_SCALE = 1.5;
 const STAR_COUNT = 380;
+const STOP_COUNT = 14;
 /** 拉远：摄影机缩放从 ZOOM0 到 1 */
 const ZOOM0 = 3.5;
 const PULL = [0, 8.5];
@@ -53,14 +54,26 @@ export const STARS: Star[] = (() => {
   const ranked = stars
     .map((s) => ({s, key: Math.hypot(s.x - SKY_CENTER.x, s.y - SKY_CENTER.y) / maxD + randRange(`sa${s.i}`, 0, 0.35)}))
     .sort((a, b) => a.key - b.key);
+  // 镜头15 里停下来的「零星十几颗」：挑中等以上大小、不在字幕和时钟区域的星星
+  const stoppers = new Set(
+    stars
+      .filter((s) => s.r > 3.4 && s.y < 800 && !(s.x < 320 && s.y < 160))
+      .sort((a, b) => rand(`stop${a.i}`) - rand(`stop${b.i}`))
+      .slice(0, STOP_COUNT)
+      .map((s) => s.i),
+  );
   return ranked.map(({s}, rank) => ({
     ...s,
     appear: 0.6 + 7.2 * Math.pow(rank / STAR_COUNT, 0.62),
-    stops: rand(`stop${s.i}`) < 0.04 && s.r > 3,
+    stops: stoppers.has(s.i),
   }));
 })();
 
+/** 停下的星星在 STOPPERS 里的序号（决定它停下的先后） */
+export const STOPPERS = STARS.filter((s) => s.stops).sort((a, b) => a.x - b.x);
+
 export const zoomAt = (t: number) => keys(t, PULL, [ZOOM0, 1]);
+export {ZOOM0};
 
 /** 一颗星在画面上的样子；镜头15 也用 */
 export const StarDot: React.FC<{star: Star; gt: number; zoom: number; on: number; stillness?: number; boost?: number}> = ({

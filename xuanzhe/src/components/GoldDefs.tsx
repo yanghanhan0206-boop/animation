@@ -73,6 +73,13 @@ export const GoldDefs: React.FC = () => (
         <stop offset="0.45" stopColor={COLORS.cold0} stopOpacity="0.1" />
         <stop offset="1" stopColor={COLORS.cold0} stopOpacity="0" />
       </radialGradient>
+      {/* 小球内部的视野 */}
+      <radialGradient id="mind-fill" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stopColor={COLORS.gold1} stopOpacity="0.07" />
+        <stop offset="0.7" stopColor={COLORS.gold0} stopOpacity="0.04" />
+        <stop offset="0.92" stopColor={COLORS.gold1} stopOpacity="0.12" />
+        <stop offset="1" stopColor="#FFF3C8" stopOpacity="0.3" />
+      </radialGradient>
       {/* 冰壳 */}
       <radialGradient id="ice" cx="0.42" cy="0.38" r="0.62">
         <stop offset="0" stopColor={COLORS.ice} stopOpacity="0.05" />

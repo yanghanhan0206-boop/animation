@@ -18,7 +18,9 @@ export const CURVE = {
   height: 380,
 };
 
-const f = (p: number) => 0.07 + 0.93 * Math.exp(-0.5 * ((p - 0.5) / 0.19) ** 2);
+/** 倒 U 形：0→1 的可能性对应的压力（0–1） */
+export const stressF = (p: number) => 0.07 + 0.93 * Math.exp(-0.5 * ((p - 0.5) / 0.19) ** 2);
+const f = stressF;
 
 export const curvePoint = (p: number) => ({
   x: CURVE.px0 + (CURVE.px1 - CURVE.px0) * p,
@@ -54,6 +56,9 @@ export const curveUpTo = (g: number) => {
 
 export const PEAK = curvePoint(0.5);
 
+/** 峰顶小光点的呼吸亮度，按完整版绝对时间算，镜头6、7 之间不会跳 */
+export const peakHold = (gt: number) => 0.8 + 0.2 * Math.sin(gt * 2.2);
+
 export const StressCurve: React.FC<{
   /** 坐标轴画出 0→1 */
   axes: number;
@@ -63,9 +68,10 @@ export const StressCurve: React.FC<{
   growth: number;
   /** 整体亮度（镜头7 压暗） */
   dim?: number;
-  /** 从峰顶落到 50% 的虚线 */
+  /** 从峰顶落到 50% 的虚线：画出进度与不透明度 */
   dropLine?: number;
-}> = ({axes, labels, growth, dim = 1, dropLine = 0}) => {
+  dropOpacity?: number;
+}> = ({axes, labels, growth, dim = 1, dropLine = 0, dropOpacity = 1}) => {
   const {origin, xEnd, yTop} = CURVE;
   const pts = growth > 0 ? curveUpTo(growth) : [];
   const tip = pts[pts.length - 1];
@@ -117,7 +123,7 @@ export const StressCurve: React.FC<{
           stroke={COLORS.gold1}
           strokeWidth={1.4}
           strokeDasharray="5 7"
-          opacity={0.7}
+          opacity={0.7 * dropOpacity}
         />
       )}
       {/* 曲线 */}
@@ -177,3 +183,34 @@ export const DropIcon: React.FC<{x: number; y: number; opacity: number}> = ({x, 
     <path d={`M ${x - 14} ${y + 12} Q ${x - 14} ${y + 28} ${x} ${y + 32}`} opacity={0.7} />
   </g>
 );
+
+/** 缩小版倒 U 曲线（镜头16、17 画面一角），marker 为标记点所在的可能性 0→1 */
+export const MiniCurve: React.FC<{x: number; y: number; w: number; h: number; marker: number; opacity: number}> = ({
+  x,
+  y,
+  w,
+  h,
+  marker,
+  opacity,
+}) => {
+  if (opacity <= 0.001) {
+    return null;
+  }
+  const pt = (p: number) => ({x: x + w * (0.06 + 0.88 * p), y: y - h * 0.92 * stressF(p)});
+  const d = Array.from({length: 61}, (_, i) => {
+    const q = pt(i / 60);
+    return `${i === 0 ? 'M' : 'L'} ${q.x.toFixed(1)} ${q.y.toFixed(1)}`;
+  }).join(' ');
+  const m = pt(marker);
+  return (
+    <g opacity={opacity}>
+      <g stroke="url(#gold-stroke)" strokeWidth={1.2} fill="none" opacity={0.6}>
+        <line x1={x} y1={y} x2={x + w} y2={y} />
+        <line x1={x} y1={y} x2={x} y2={y - h} />
+      </g>
+      <path d={d} fill="none" stroke="url(#gold-stroke)" strokeWidth={1.8} />
+      <circle cx={m.x} cy={m.y} r={12} fill="url(#ball-glow)" />
+      <circle cx={m.x} cy={m.y} r={4.5} fill="#FFF3C8" />
+    </g>
+  );
+};

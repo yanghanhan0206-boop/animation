@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import {Stage} from '../components/Stage';
-import {DropIcon, EyeIcon, PEAK, PeakFlash, StressCurve} from '../components/StressCurve';
+import {DropIcon, EyeIcon, PEAK, PeakFlash, StressCurve, peakHold} from '../components/StressCurve';
 import {EASE, fade, keys, tween} from '../lib/anim';
 import {useShot} from '../lib/shot-context';
 
@@ -21,13 +21,13 @@ export const SHOT6 = {
 export const ICON_POS = {eye: {x: 1650, y: 380}, drop: {x: 1650, y: 545}};
 
 export const Shot06: React.FC = () => {
-  const {t} = useShot();
+  const {t, gt} = useShot();
   const growth = tween(t, SHOT6.growth[0], SHOT6.growth[1], 0, 1, EASE);
   // 弧长对称，峰顶正好在生长到一半时
   const peakT = (SHOT6.growth[0] + SHOT6.growth[1]) / 2;
   const flash = tween(t, peakT - 0.05, peakT + 1.0, 0, 1);
   const flash2 = tween(t, SHOT6.emphasis, SHOT6.emphasis + 1.1, 0, 1);
-  const hold = Math.max(tween(t, peakT, peakT + 0.6), 0) * (0.75 + 0.25 * Math.sin(t * 2.2));
+  const hold = tween(t, peakT, peakT + 0.6) * peakHold(gt);
   const eye = fade(t, SHOT6.icons[0], SHOT6.icons[1]);
   const drop = fade(t, SHOT6.icons[0] + 0.4, SHOT6.icons[1] + 0.4);
   const pupil = keys(t, [SHOT6.icons[0] + 0.4, SHOT6.icons[1] + 1.2], [9, 17]);

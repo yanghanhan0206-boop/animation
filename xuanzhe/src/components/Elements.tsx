@@ -69,6 +69,15 @@ const roadPath = (g: RoadGeometry, upto = 1) => {
   return `M ${g.p0.x} ${g.p0.y} C ${a.x} ${a.y} ${d.x} ${d.y} ${f.x} ${f.y}`;
 };
 
+/** 路上 k0→k1 这一段（折线近似） */
+export const roadSegmentPath = (g: RoadGeometry, k0: number, k1: number) => {
+  const n = 32;
+  return Array.from({length: n + 1}, (_, i) => {
+    const p = bezierPoint(g.p0, g.p1, g.p2, g.p3, k0 + ((k1 - k0) * i) / n);
+    return `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+  }).join(' ');
+};
+
 export const Roads: React.FC<{
   origin: Point;
   spread?: number;
@@ -77,11 +86,11 @@ export const Roads: React.FC<{
   draw?: number | number[];
   /** 每条路的点亮程度 0→1 */
   lit?: number[];
-  /** 未点亮时的不透明度 */
-  base?: number;
+  /** 未点亮时的不透明度，可每条单独给 */
+  base?: number | number[];
   labels?: string[];
   labelSize?: number;
-  labelOpacity?: number;
+  labelOpacity?: number | number[];
   strokeWidth?: number;
 }> = ({
   origin,
@@ -89,10 +98,10 @@ export const Roads: React.FC<{
   length = 270,
   draw = 1,
   lit = [],
-  base = 0.55,
+  base: baseIn = 0.55,
   labels = [],
   labelSize = 34,
-  labelOpacity = 1,
+  labelOpacity: labelOpacityIn = 1,
   strokeWidth = 2,
 }) => {
   const count = Math.max(labels.length, 4);
@@ -102,7 +111,9 @@ export const Roads: React.FC<{
         const g = roadGeometry(origin, spread, length, i, count);
         const d = Array.isArray(draw) ? (draw[i] ?? 1) : draw;
         const l = lit[i] ?? 0;
-        if (d <= 0.001) {
+        const base = Array.isArray(baseIn) ? (baseIn[i] ?? 0.55) : baseIn;
+        const labelOpacity = Array.isArray(labelOpacityIn) ? (labelOpacityIn[i] ?? 1) : labelOpacityIn;
+        if (d <= 0.001 || base + l <= 0.001) {
           return null;
         }
         const path = roadPath(g, d);

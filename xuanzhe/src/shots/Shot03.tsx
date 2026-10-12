@@ -6,15 +6,16 @@ import {Roads} from '../components/Elements';
 import {GoldBall} from '../components/GoldBall';
 import {Stage} from '../components/Stage';
 import {HOME} from '../config/theme';
-import {LABELS} from '../config/timeline';
+import {LABELS, at} from '../config/timeline';
 import {jitter, keys, tween} from '../lib/anim';
 import {useShot} from '../lib/shot-context';
-import {ROAD_LENGTH, ROAD_ORIGIN, ROAD_SPREAD, SHOT2_END_TENSION} from './Shot02';
+import {ROAD_LENGTH, ROAD_ORIGIN, ROAD_SPREAD, SHOT2_END_TENSION, roadLit} from './Shot02';
 
 export const SHOT3_END_TENSION = 1.15;
 
 export const Shot03: React.FC = () => {
   const {t, gt, dur} = useShot();
+  const lit = roadLit(gt - at(2));
   const base = keys(t, [0, 3.8], [0.55, 0]);
   const labelOpacity = 1 - tween(t, 0.4, 3.4);
   const tension = keys(t, [0, dur], [SHOT2_END_TENSION, SHOT3_END_TENSION]);
@@ -27,6 +28,7 @@ export const Shot03: React.FC = () => {
           spread={ROAD_SPREAD}
           length={ROAD_LENGTH}
           base={base}
+          lit={lit.map((l) => l * Math.min(1, base / 0.55 + 0.3))}
           labels={LABELS.roads}
           labelOpacity={labelOpacity}
         />

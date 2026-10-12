@@ -139,6 +139,7 @@ export const SHOTS: ShotConfig[] = [
     start: 64,
     end: 70,
     subtitle: '人能扛住坏消息，却扛不住不知道',
+    tail: 1.2,
   },
   {
     id: 8,
