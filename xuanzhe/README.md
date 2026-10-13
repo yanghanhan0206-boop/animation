@@ -16,7 +16,13 @@
 | [`output/你哭的不是选择是悬着_上集.mp4`](output/你哭的不是选择是悬着_上集.mp4) | 1:55 | 36 MB |
 | [`output/你哭的不是选择是悬着_下集.mp4`](output/你哭的不是选择是悬着_下集.mp4) | 1:29 | 28 MB |
 
-封面：[`output/封面.jpg`](output/封面.jpg)（1920×1080，Composition `Cover`，文字在 `timeline.ts` 的 `COVER` 里改，导出命令 `npx remotion still Cover output/封面.jpg --image-format=jpeg --jpeg-quality=95`）
+封面（文字在 `timeline.ts` 的 `COVER` 里改，导出命令 `npx remotion still <Composition> <文件> --image-format=jpeg --jpeg-quality=95`）：
+
+| 文件 | 尺寸 | Composition |
+|---|---|---|
+| [`output/封面_竖版_9x16.jpg`](output/封面_竖版_9x16.jpg) | 1080×1920（手机全屏） | `CoverVertical` |
+| [`output/封面_竖版_3x4.jpg`](output/封面_竖版_3x4.jpg) | 1080×1440 | `CoverVertical34` |
+| [`output/封面.jpg`](output/封面.jpg) | 1920×1080（横版） | `Cover` |
 
 仓库里的是 2.6 Mbps 的压缩版；母版（约 10 Mbps）用 `npm run render:all` 导出到 `out/`，再用 `scripts/deliver.sh` 压缩。
 

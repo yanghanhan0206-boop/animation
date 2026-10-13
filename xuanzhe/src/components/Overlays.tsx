@@ -3,9 +3,9 @@
  * 它们的时间全部来自 src/lib/plan.ts 的排期，镜头组件不用管。
  */
 import React, {useLayoutEffect, useRef} from 'react';
-import {AbsoluteFill, useCurrentFrame} from 'remotion';
+import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
 import {CITATION_STYLE, CLOCK_STYLE, COLORS, FONTS, GRAIN, SUBTITLE_STYLE, VIGNETTE} from '../config/theme';
-import {CITATION_TIMING, CLOCK, FPS, HEIGHT, SUBTITLE_TIMING, WIDTH} from '../config/timeline';
+import {CITATION_TIMING, CLOCK, FPS, SUBTITLE_TIMING} from '../config/timeline';
 import {EASE_SOFT, tween} from '../lib/anim';
 import type {PlannedClock, PlannedSubtitle} from '../lib/plan';
 
@@ -209,6 +209,7 @@ const GrainCanvas: React.FC<{kind: GrainKind; blend: 'overlay' | 'screen'; opaci
   opacity,
 }) => {
   const frame = useCurrentFrame();
+  const {width, height} = useVideoConfig();
   const ref = useRef<HTMLCanvasElement>(null);
   useLayoutEffect(() => {
     const canvas = ref.current;
@@ -224,14 +225,14 @@ const GrainCanvas: React.FC<{kind: GrainKind; blend: 'overlay' | 'screen'; opaci
     const pattern = ctx.createPattern(tile, 'repeat')!;
     ctx.setTransform(1, 0, 0, 1, -ox, -oy);
     ctx.fillStyle = pattern;
-    ctx.fillRect(ox, oy, WIDTH, HEIGHT);
+    ctx.fillRect(ox, oy, width, height);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }, [frame, kind]);
+  }, [frame, kind, width, height]);
   return (
     <canvas
       ref={ref}
-      width={WIDTH}
-      height={HEIGHT}
+      width={width}
+      height={height}
       style={{position: 'absolute', inset: 0, mixBlendMode: blend, opacity, pointerEvents: 'none'}}
     />
   );

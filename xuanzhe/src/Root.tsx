@@ -3,6 +3,7 @@ import {Composition, Folder} from 'remotion';
 import {FPS, HEIGHT, WIDTH} from './config/timeline';
 import {Film, PARTS} from './compositions/Film';
 import {Cover} from './compositions/Cover';
+import {CoverVertical} from './compositions/CoverVertical';
 import {SHEET_HEIGHT, SHEET_WIDTH, TimingSheet} from './compositions/TimingSheet';
 import {buildPlan} from './lib/plan';
 
@@ -40,6 +41,9 @@ export const RemotionRoot: React.FC = () => (
     />
     <Folder name="封面">
       <Composition id="Cover" component={Cover} durationInFrames={1} fps={FPS} width={WIDTH} height={HEIGHT} />
+      {/* 竖版：9:16 手机全屏，3:4 小红书 / 视频号信息流 */}
+      <Composition id="CoverVertical" component={CoverVertical} durationInFrames={1} fps={FPS} width={1080} height={1920} />
+      <Composition id="CoverVertical34" component={CoverVertical} durationInFrames={1} fps={FPS} width={1080} height={1440} />
     </Folder>
     <Folder name="工具">
       <Composition

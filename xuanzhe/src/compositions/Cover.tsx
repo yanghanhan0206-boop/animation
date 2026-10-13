@@ -21,7 +21,7 @@ const ROAD_ORIGIN = {x: BALL.x, y: BALL.y + 74};
 
 
 /** 一滴金色的泪，从小球左下方落下 */
-const Tear: React.FC<{x: number; y: number; s: number}> = ({x, y, s}) => (
+export const Tear: React.FC<{x: number; y: number; s: number}> = ({x, y, s}) => (
   <g filter="url(#glow-soft)">
     <path
       d={`M ${x} ${y - 22 * s} C ${x + 4 * s} ${y - 12 * s} ${x + 11 * s} ${y - 2 * s} ${x + 11 * s} ${y + 6 * s} A ${11 * s} ${11 * s} 0 0 1 ${x - 11 * s} ${y + 6 * s} C ${x - 11 * s} ${y - 2 * s} ${x - 4 * s} ${y - 12 * s} ${x} ${y - 22 * s} Z`}
