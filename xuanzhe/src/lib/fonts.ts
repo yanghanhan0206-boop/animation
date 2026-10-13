@@ -9,7 +9,7 @@ import '@fontsource/noto-sans-sc/100.css';
 import '@fontsource/noto-sans-sc/400.css';
 import {useEffect, useState} from 'react';
 import {cancelRender, continueRender, delayRender} from 'remotion';
-import {CLOCK, LABELS, PART1, PART2, SHOTS} from '../config/timeline';
+import {CLOCK, COVER, LABELS, PART1, PART2, SHOTS} from '../config/timeline';
 
 const collectText = () => {
   const parts: string[] = [CLOCK.text, '0123456789:'];
@@ -17,6 +17,7 @@ const collectText = () => {
     parts.push(s.subtitle, s.citation ?? '');
   }
   parts.push(PART1.outro?.subtitle ?? '', PART2.intro?.subtitle ?? '');
+  parts.push(...COVER.lines, COVER.emphasis, COVER.title);
   for (const v of Object.values(LABELS)) {
     parts.push(Array.isArray(v) ? v.join('') : v);
   }

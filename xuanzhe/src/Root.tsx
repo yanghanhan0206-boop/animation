@@ -2,6 +2,7 @@ import React from 'react';
 import {Composition, Folder} from 'remotion';
 import {FPS, HEIGHT, WIDTH} from './config/timeline';
 import {Film, PARTS} from './compositions/Film';
+import {Cover} from './compositions/Cover';
 import {SHEET_HEIGHT, SHEET_WIDTH, TimingSheet} from './compositions/TimingSheet';
 import {buildPlan} from './lib/plan';
 
@@ -37,6 +38,9 @@ export const RemotionRoot: React.FC = () => (
       width={WIDTH}
       height={HEIGHT}
     />
+    <Folder name="封面">
+      <Composition id="Cover" component={Cover} durationInFrames={1} fps={FPS} width={WIDTH} height={HEIGHT} />
+    </Folder>
     <Folder name="工具">
       <Composition
         id="TimingSheet"
