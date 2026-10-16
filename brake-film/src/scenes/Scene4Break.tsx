@@ -218,7 +218,7 @@ export const Scene4Break: React.FC = () => {
   const calIn = tween(frame, [S4.calIn, S4.calIn + 0.5], [0, 1]);
   const calOut = tween(frame, [S4.endAt + 0.6, S4.endAt + 1.4], [1, 0]);
 
-  // 金线：冲破前金色；顶住的一瞬变红并被顶弯；随后碎裂
+  // 金线：冲破前金色；被顶住的一瞬变红、颤动；随后碎裂
   const tremble = interpolate(f, [S4.breakAt, S4.shatterAt], [1.5, 4], clamp01);
 
   const yoyIn = tween(frame, [S4.yoyAt, S4.yoyAt + 0.5], [0, 1], Easing.out(Easing.cubic));
