@@ -18,6 +18,11 @@ export const HEIGHT = 1080;
 
 export const FILM_TITLE = '踩不住的刹车';
 
+/** 9:16 竖屏封面（1080×1920）。标题里有「：」时，冒号前后分两行排 */
+export const COVER = {
+  title: '胖东来：踩不住的刹车',
+};
+
 /** 字幕淡入、淡出的帧数 */
 export const SUBTITLE_FADE_IN = 8;
 export const SUBTITLE_FADE_OUT = 6;

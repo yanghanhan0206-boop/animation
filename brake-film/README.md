@@ -17,10 +17,18 @@ npm run render     # 渲染成片 → out/踩不住的刹车.mp4
 |---|---|
 | `npm run preview` | 渲染一版半分辨率（960×540）的快速预览 → `out/预览_半分辨率.mp4` |
 | `npm run stills` | 每场导出三张关键帧 → `out/stills/` |
+| `npm run cover` | 导出 9:16 竖屏封面（1080×1920）→ `out/封面_9x16.png`，标题在 `data.ts` 的 `COVER` 里改 |
 | `npm run typecheck` | TypeScript 类型检查 |
 
 渲染需要 Chrome（Remotion 首次渲染会自动下载 Chrome Headless Shell）。
 已有 Chromium 时可以指定：`npx remotion render BrakeFilm out/踩不住的刹车.mp4 --browser-executable=/path/to/chrome`。
+
+## 已交付的文件
+
+- 成片：[`output/踩不住的刹车.mp4`](output/踩不住的刹车.mp4)（1920×1080，30fps，H.264，BT.709，2:36，暂无声音）
+- 竖屏封面：[`output/封面_9x16.png`](output/封面_9x16.png)（1080×1920）
+
+`out/` 是渲染的工作目录，不进 git；确认过的成品放在 `output/`。
 
 ## 改内容
 

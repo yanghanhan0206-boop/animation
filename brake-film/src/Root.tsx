@@ -1,7 +1,8 @@
 import React from 'react';
-import {Composition} from 'remotion';
+import {Composition, Still} from 'remotion';
 import './fonts';
 import {FPS, HEIGHT, TOTAL_FRAMES, WIDTH} from './data';
+import {Cover} from './Cover';
 import {Film} from './Film';
 import {validateData} from './validate';
 
@@ -21,5 +22,6 @@ export const RemotionRoot: React.FC = () => (
       height={HEIGHT}
       defaultProps={{}}
     />
+    <Still id="Cover916" component={Cover} width={1080} height={1920} />
   </>
 );

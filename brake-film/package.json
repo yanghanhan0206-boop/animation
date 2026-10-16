@@ -8,7 +8,8 @@
     "render": "remotion render BrakeFilm out/踩不住的刹车.mp4",
     "preview": "remotion render BrakeFilm out/预览_半分辨率.mp4 --scale=0.5",
     "stills": "node scripts/stills.mjs out/stills",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cover": "remotion still Cover916 out/封面_9x16.png"
   },
   "dependencies": {
     "@fontsource/noto-sans-sc": "5.3.1",
