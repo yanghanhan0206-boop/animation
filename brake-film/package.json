@@ -1,0 +1,27 @@
+{
+  "name": "brake-film",
+  "version": "1.0.0",
+  "private": true,
+  "description": "踩不住的刹车：数据动效短片（Remotion）",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render BrakeFilm out/踩不住的刹车.mp4",
+    "preview": "remotion render BrakeFilm out/预览_半分辨率.mp4 --scale=0.5",
+    "stills": "node scripts/stills.mjs out/stills",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans-sc": "5.3.1",
+    "@fontsource/noto-serif-sc": "5.3.1",
+    "@fontsource/oswald": "5.3.0",
+    "@remotion/cli": "4.0.535",
+    "@remotion/google-fonts": "4.0.535",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.12",
+    "typescript": "5.9.3"
+  }
+}
